@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SQL.js In-Memory Database</title>
+</head>
+<body>
+  <h1>SQL.js Client-Side Database Demo</h1>
+
+  <button onclick="createTable()">Create Table</button>
+  <button onclick="insertData()">Insert Data</button>
+  <button onclick="fetchData()">Fetch Data</button>
+
+  <pre id="output"></pre>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.6.2/sql-wasm.js"></script>
+  <script>
+    let db; // Global variable for the database instance
+
+    // Initialize the database
+    async function initDatabase() {
+      const SQL = await initSqlJs();
+      db = new SQL.Database(); // Creates an in-memory database
+      document.getElementById("output").textContent += "Database initialized.\n";
+    }
+
+    // Create a table
+    function createTable() {
+      db.run("CREATE TABLE groceries (id INTEGER PRIMARY KEY, name TEXT, category TEXT);");
+      document.getElementById("output").textContent += "Table 'groceries' created.\n";
+    }
+
+    // Insert some data
+    function insertData() {
+      const stmt = db.prepare("INSERT INTO groceries (name, category) VALUES (?, ?);");
+      stmt.run(["Apples", "Fruit"]);
+      stmt.run(["Bread", "Bakery"]);
+      stmt.run(["Milk", "Dairy"]);
+      stmt.free(); // Free up resources
+
+      document.getElementById("output").textContent += "Sample data inserted.\n";
+    }
+
+    // Fetch data
+    function fetchData() {
+      const res = db.exec("SELECT * FROM groceries;");
+      const output = document.getElementById("output");
+
+      if (res.length > 0) {
+        res[0].values.forEach(row => {
+          output.textContent += `ID: ${row[0]}, Name: ${row[1]}, Category: ${row[2]}\n`;
+        });
+      } else {
+        output.textContent += "No data found.\n";
+      }
+    }
+
+    // Initialize the database on load
+    initDatabase();
+  </script>
+</body>
+</html>

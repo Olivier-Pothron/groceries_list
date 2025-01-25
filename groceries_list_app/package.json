@@ -1,0 +1,29 @@
+{
+  "name": "me.boz_is_alive.my_groceries_list",
+  "displayName": "MyGroceriesList",
+  "version": "1.0.0",
+  "description": "A sample Apache Cordova application that responds to the deviceready event.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "ecosystem:cordova"
+  ],
+  "author": "Apache Cordova Team",
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "cordova-browser": "^7.0.0",
+    "cordova-plugin-file": "^8.1.0",
+    "cordova-sqlite-storage": "^6.1.0"
+  },
+  "cordova": {
+    "platforms": [
+      "browser"
+    ],
+    "plugins": {
+      "cordova-sqlite-storage": {},
+      "cordova-plugin-file": {}
+    }
+  }
+}

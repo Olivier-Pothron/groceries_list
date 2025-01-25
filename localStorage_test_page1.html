@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <title>LOCALSTORAGE TEST PAGE ONE</title>
+  </head>
+  <body>
+    <H1>THIS IS A TEST</H1>
+    <h2>Enter a text</h2>
+    <input id="text-input" type="text">
+    <button id="val-but">VALIDATE INPUT</button>
+    <button id="str-loc">LOCAL STORE</button>
+    <p id="text-output">Waiting for you to enter something</p>
+    <a href="./localStorage_test_page2.html">GO to page Two</a>
+    <script>
+      const localValue = localStorage.getItem("aKey");
+      const textIn = document.getElementById("text-input");
+      const textOut = document.getElementById("text-output");
+      const valBut = document.getElementById("val-but");
+      const storeLocal = document.getElementById("str-loc");
+      
+      if (localValue) {
+        textOut.innerText = localValue;
+      }
+      valBut.addEventListener("click", () => {
+        textOut.innerText = textIn.value;
+      });
+
+      storeLocal.addEventListener("click", () => {
+        localStorage.setItem("aKey", textIn.value);
+        console.log("Value Stored Locally");
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modal Example</title>
+    <link rel="stylesheet" href="model_test_style.css">
+</head>
+<body>
+  <div class="container">
+    <a href="#modal-1" class="btn" id="show-btn">SHOW MODAL</a>
+      <ul class="item_list">
+          <div class="item">
+              <h3>ITEM 1</h3>
+              <ul>
+                  <li>THIS</li>
+                  <li>IS</li>
+                  <li>GOOD</li>
+              </ul>
+          </div>
+          <div class="item">
+              <h3>ITEM 2</h3>
+              <ul>
+                  <li>THIS</li>
+                  <li>IS</li>
+                  <li>GOOD</li>
+              </ul>
+          </div>
+          <div class="item">
+              <h3>ITEM 3</h3>
+              <ul>
+                  <li>THIS</li>
+                  <li>IS</li>
+                  <li>GOOD</li>
+              </ul>
+          </div>
+      </ul>
+  </div>
+
+  <!--MODAL-->  
+  <div class="modal" id="modal-1">
+      <div class="modal-content" id="modal-content-1">
+        <div class="modal-header">
+          <h3>MODAL HEADER</h3>
+          <a href="#" class="btn" id="cl-btn">X</a>
+        </div>
+        <div class="modal-body">
+          <form class="modal-form" id="add-item-form">
+            <div>
+              <input class="input-field"
+                    type="text"
+                    placeholder="Enter item name"
+                    id="item-input"
+                    required>
+              <span class="validation wrong">&#x2A2F;</span>
+              <span class="validation right">&#x2713;</span>
+            </div>
+
+            <hr>
+
+            <div>
+              <select id="category-selector">
+                <option value="">Select category</option>
+                <option value="Category 1">Category 1</option>
+                <option value="Category 2">Category 2</option>
+                <option value="Custom">Custom</option>
+              </select>
+              <input class="input-field"
+              id="custom-input"
+              type="text" >
+              <span class="validation wrong">&#x2A2F;</span>
+              <span class="validation right">&#x2713;</span>
+            </div>
+
+          </form>
+        </div>
+        <div class="modal-footer">
+          <span id="validation-feedback"></span>
+          <button class="btn" id="val-btn">AJOUTER</button>
+        </div>
+      </div>
+  </div>
+  <!--/MODAL-->
+
+  <!--DIALOG-->
+  <div class="container">
+    <dialog id="mydia" autofocus>
+      <form action="">
+        <p>THISISATEST</p>
+        <input  type="text"
+                id="custom-cat-input"
+                placeholder="enter custom category">
+        <button value="nothing" formmethod="dialog">CANCEL</button>
+        <button id="confirm-button">OK</button>
+      </form>
+    </dialog>
+    <button id="diashow">SHOW THE DIALOG</button>
+    <output id="dia-output">Test</output>
+  </div>
+  <!--/DIALOG-->
+
+  <div class="container">
+    <output id="output-one">LIBERIUM INCIPIT LOREM IPSUM</output>
+  </div>
+
+  <script src="model_test_script.js"></script>
+</body>
+</html>

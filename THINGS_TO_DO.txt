@@ -1,0 +1,21 @@
+CORDOVA APP
+
+- create initialize db js file
+- segregate events ?
+
+BROWSER CLIENT ::
+
+- add local database *check*
+- add modal
+psudocode ->
+validate name
+validate category
+if both allright send it
+
+
+
+- segregate modal
+- segregate events
+- make helper functions
+
+SERVER

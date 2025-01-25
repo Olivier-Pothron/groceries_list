@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>LOCALSTORAGE TEST PAGE ONE</title>
+  </head>
+  <body>
+    <H1>CONTINUING THe TEST</H1>
+    <h2>Retrieve the text</h2>
+    <button id="ret-loc">RETRIEVE LOCAL VALUE</button>
+    <button id="del-loc">DELETE LOCAL VALUE</button>
+    <p id="ret-test"></p>
+    <a href="./localStorage_test_page1.html">BACK TO PAGE ONE</a>
+
+    <script>
+      const retButt = document.getElementById("ret-loc");
+      const delButt = document.getElementById("del-loc");
+      const retTest = document.getElementById("ret-test");
+
+      retButt.addEventListener("click", () => {
+        const localValue = localStorage.getItem("aKey");
+        retTest.innerText = localValue;
+      });
+
+      delButt.addEventListener("click", () => {
+        localStorage.removeItem("aKey");
+      });
+    </script>
+  </body>
+</html>
