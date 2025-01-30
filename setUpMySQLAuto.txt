@@ -1,0 +1,28 @@
+Automated MySQL Database Initialization - Pseudo-code
+Check if MySQL is installed
+
+Run a shell command to check mysql --version
+If not found, print a message and exit
+Check if MySQL server is running
+
+Try connecting to MySQL
+If connection fails, print a message and exit
+Create the database and tables
+
+Read init_db.sql (the SQL script)
+Execute the script via MySQL CLI or a database connection
+Confirm success
+
+If execution is successful, print "Database initialized"
+If an error occurs, display an error message
+Example Usage
+Shell Command:
+sh
+Copier le code
+./setup_mysql.sh  # (For Linux/macOS)
+setup_mysql.bat    # (For Windows)
+Node.js Script:
+sh
+Copier le code
+node init_db.js
+This setup ensures any user cloning your repo can set up the database with minimal effort. Let me know when you’re ready to implement it! 🚀

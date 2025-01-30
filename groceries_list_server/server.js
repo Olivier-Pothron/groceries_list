@@ -6,10 +6,12 @@ const jwt = require('jsonwebtoken');
 require('dotenv').config();
 
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
+const MYSQL_USER = process.env.MYSQL_USER;
+const MYSQL_PASSWORD = process.env.MYSQL_PASSWORD;
 
 const app = express();
 
-app.use(express.json());
+app.use(express.json()); // parses req automatically
 
 // Enable CORS for all routes
 app.use(cors());
@@ -40,8 +42,8 @@ app.use((req, res, next) => {
 const mysqlPool = mysql.createPool({
   connectionLimit: 10,
   host: 'localhost',
-  user: 'oliv',
-  password: 'S@mPyJ4M!',
+  user: MYSQL_USER,
+  password: MYSQL_PASSWORD,
   database: 'groceries'
 });
 
@@ -94,6 +96,7 @@ app.get('/myList', (req, res) => {
   });
 });
 
+// TOGGLE TO_BE_BOUGHT VALUE
 app.put('/groceries/:id', (req, res) => {
   const id = req.params.id;
   const { toBeBought } = req.body;
@@ -111,7 +114,7 @@ app.put('/groceries/:id', (req, res) => {
       return;
     }
 
-    // Update the tobebought value
+    // Update the to_be_bought value
     const updateQuery = 'UPDATE groceries_list SET to_be_bought = ? WHERE id = ?';
     mysqlPool.query(updateQuery, [toBeBought, id], (err, results) => {
       if (err) {
@@ -174,6 +177,7 @@ app.post('/groceries', (req, res) => {
   });
 });
 
+// DELETE GROCERY
 app.delete('/groceries/:id', (req, res) => {
   const id = req.params.id;
   let itemName = "";
@@ -200,6 +204,78 @@ app.delete('/groceries/:id', (req, res) => {
     }
     console.log(`${itemName} (id#${id}) removed from list at `+
                 `${formattedRequestTime}`);
+    res.status(200).json({ success: true });
+  });
+});
+
+// DELETE CATEGORY
+app.delete('/categories/:id', (req, res) => {
+  const id = req.params.id;
+  let categoryName = "";
+
+  const nameQuery = 'SELECT item_name FROM groceries_categories WHERE id = ?';
+  mysqlPool.query(nameQuery, [id], (err, results) => {
+    if (err) {
+      console.error('Error executing query:', err);
+      res.status(500).json({ error: 'Database error' });
+      return next(err);
+    }
+    categoryName = results[0].name;
+  });
+
+  // Formatting the request time to a more readable format
+  const formattedRequestTime = new Date(req.requestTime).toLocaleString();
+
+  const deleteQuery = 'DELETE FROM groceries_categories WHERE id = ?';
+  mysqlPool.query(deleteQuery, [id], (err, results) => {
+    if (err) {
+      console.error('Error executing query:', err);
+      res.status(500).json({ error: 'Database error' });
+      return next(err);
+    }
+    console.log(`${categoryName} (id#${id}) removed from list at `+
+                `${formattedRequestTime}`);
+    res.status(200).json({ success: true });
+  });
+});
+
+// SYNC ENDPOINTS
+app.post('/syncup/groceries', (req, res) => {
+  const groceries = req.body;
+
+  const values = groceries.map( g => [g.name, g.category_id, g.toBeBought] );
+
+  const query = `INSERT INTO groceries_list (name, category_id, to_be_bought)
+                VALUES ?
+                ON DUPLICATE KEY UPDATE
+                to_be_bought = VALUES(to_be_bought)
+                `;
+
+  mysqlPool.query( query, [values], (err, results) => {
+    if (err) {
+      console.error('Error executing query:', err);
+      res.status(500).json({ error: 'Database error' });
+      return next(err);
+    }
+    console.log("Sync groceries table to Server.");
+    res.status(200).json({ success: true });
+  });
+});
+
+app.post('/syncup/categories', (req, res) => {
+  const categories = req.body;
+
+  const values = categories.map( category => [category.name] );
+
+  const query = 'INSERT IGNORE INTO groceries_categories(name) VALUES ?;';
+
+  mysqlPool.query( query, [values], (err, results) => {
+    if (err) {
+      console.error('Error executing query:', err);
+      res.status(500).json({ error: 'Database error' });
+      return next(err);
+    }
+    console.log("Synced categories table to Server.");
     res.status(200).json({ success: true });
   });
 });
