@@ -1,5 +1,6 @@
 const express = require('express');
 const mysql = require('mysql2');
+const mysqlPool = require('./db');
 const cors = require('cors');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
@@ -9,12 +10,19 @@ const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
 const MYSQL_USER = process.env.MYSQL_USER;
 const MYSQL_PASSWORD = process.env.MYSQL_PASSWORD;
 
-const app = express();
+const categoriesRoutes = require('./api/categories');
+const groceriesRoutes = require('./api/groceries');
 
-app.use(express.json()); // parses req automatically
+const app = express();
 
 // Enable CORS for all routes
 app.use(cors());
+
+app.use(express.json()); // parses req automatically
+app.use('/api/categories', categoriesRoutes);
+app.use('/api/groceries', groceriesRoutes);
+
+
 
 // Serve static files from the 'public' directory
 // ** Useless now, might put pictures in public directory for shit & giggles **
@@ -38,15 +46,6 @@ app.use((req, res, next) => {
 //   });
 // };
 
-// SQL Connection
-const mysqlPool = mysql.createPool({
-  connectionLimit: 10,
-  host: 'localhost',
-  user: MYSQL_USER,
-  password: MYSQL_PASSWORD,
-  database: 'groceries'
-});
-
 // Define a route to handle GET requests to the root URL
 app.get('/', (req, res) => {
   res.send('This is the groceries server.');
@@ -62,30 +61,6 @@ app.get('/admin', (req, res) => {
   }
 });
 
-app.get('/groceries', (req, res) => {
-  const query = ` SELECT g.id, g.item_name, g.to_be_bought, c.name AS category
-                  FROM groceries_list AS g
-                  LEFT JOIN groceries_categories AS c
-                  ON g.category_id = c.id`;
-  mysqlPool.query(query, (err, results, fields) => {
-      if (err) {
-        console.error('Error executing query:', err);
-        return next(err);
-      }
-      res.json(results);
-    });
-});
-
-app.get('/categories', (req, res) => {
-  mysqlPool.query('SELECT * FROM groceries_categories', (err, results, fields) => {
-      if (err) {
-        console.error('Error executing query:', err);
-        return next(err);
-      }
-      res.json(results);
-  });
-});
-
 app.get('/myList', (req, res) => {
   mysqlPool.query('SELECT * FROM groceries_list WHERE to_be_bought = 1', (err, results, fields) => {
     if (err) {
@@ -93,190 +68,6 @@ app.get('/myList', (req, res) => {
       return next(err);
     }
     res.json(results);
-  });
-});
-
-// TOGGLE TO_BE_BOUGHT VALUE
-app.put('/groceries/:id', (req, res) => {
-  const id = req.params.id;
-  const { toBeBought } = req.body;
-
-  // Check if id exists in the database
-  const idQuery = 'SELECT id FROM groceries_list WHERE id = ?';
-  mysqlPool.query(idQuery, [id], (err, results) => {
-    if (err) {
-      console.error('Error executing query:', err);
-      res.status(500).json({ error: 'Database error' });
-      return next(err);
-    }
-    if (!results.length) {
-      res.status(404).json({ error: 'Item not found' });
-      return;
-    }
-
-    // Update the to_be_bought value
-    const updateQuery = 'UPDATE groceries_list SET to_be_bought = ? WHERE id = ?';
-    mysqlPool.query(updateQuery, [toBeBought, id], (err, results) => {
-      if (err) {
-        console.error('Error executing query:', err);
-        res.status(500).json({ error: 'Database error' });
-        return next(err);
-      }
-      console.log(`Item #${id} / To be bought : ${toBeBought}`);
-      res.status(200).json({ success: true });
-    });
-  });
-});
-
-app.post('/groceries', (req, res) => {
-  let { itemName, categoryId } = req.body;
-
-  categoryId = categoryId || null;
-
-  // Validate itemName is not empty
-  if (!itemName) {
-    return res.status(400).json({ error: 'Item name is required' });
-  }
-
-  const insertQuery = 'INSERT INTO groceries_list(item_name, category_id) VALUES (?, ?)';
-  mysqlPool.query(insertQuery, [itemName, categoryId], (err, insertResults) => {
-    if (err) {
-      console.error('Error executing query:', err);
-      res.status(500).json({ error: 'Database error' });
-      return next(err);
-    }
-
-    const newItemId = insertResults.insertId;
-    const categoryQuery = `SELECT g.id, g.item_name, g.to_be_bought, c.name AS category
-                          FROM groceries_list AS g
-                          LEFT JOIN groceries_categories AS c
-                          ON g.category_id = c.id
-                          WHERE g.id = LAST_INSERT_ID();
-                          `;
-    mysqlPool.query(categoryQuery, (err, queryResults) => {
-      if (err) {
-        console.error('Error executing query:', err);
-        res.status(500).json({ error: 'Database error' });
-        return;
-      }
-
-      const categoryName = queryResults[0].category;
-      const newItem = { id: newItemId,
-                        item_name: itemName,
-                        category: categoryName,
-                        to_be_bought: 0 };
-
-      // Formatting the request time to a more readable format
-      const formattedRequestTime = new Date(req.requestTime).toLocaleString();
-
-      console.log(`${itemName} inserted into Groceries List with `+
-                  `ID ${newItemId} and Category ${categoryName} ` +
-                  `at ${formattedRequestTime}`);
-      res.status(200).json(newItem);
-    });
-  });
-});
-
-// DELETE GROCERY
-app.delete('/groceries/:id', (req, res) => {
-  const id = req.params.id;
-  let itemName = "";
-
-  const nameQuery = 'SELECT item_name FROM groceries_list WHERE id = ?';
-  mysqlPool.query(nameQuery, [id], (err, results) => {
-    if (err) {
-      console.error('Error executing query:', err);
-      res.status(500).json({ error: 'Database error' });
-      return next(err);
-    }
-    itemName = results[0].item_name;
-  });
-
-  // Formatting the request time to a more readable format
-  const formattedRequestTime = new Date(req.requestTime).toLocaleString();
-
-  const deleteQuery = 'DELETE FROM groceries_list WHERE id = ?';
-  mysqlPool.query(deleteQuery, [id], (err, results) => {
-    if (err) {
-      console.error('Error executing query:', err);
-      res.status(500).json({ error: 'Database error' });
-      return next(err);
-    }
-    console.log(`${itemName} (id#${id}) removed from list at `+
-                `${formattedRequestTime}`);
-    res.status(200).json({ success: true });
-  });
-});
-
-// DELETE CATEGORY
-app.delete('/categories/:id', (req, res) => {
-  const id = req.params.id;
-  let categoryName = "";
-
-  const nameQuery = 'SELECT item_name FROM groceries_categories WHERE id = ?';
-  mysqlPool.query(nameQuery, [id], (err, results) => {
-    if (err) {
-      console.error('Error executing query:', err);
-      res.status(500).json({ error: 'Database error' });
-      return next(err);
-    }
-    categoryName = results[0].name;
-  });
-
-  // Formatting the request time to a more readable format
-  const formattedRequestTime = new Date(req.requestTime).toLocaleString();
-
-  const deleteQuery = 'DELETE FROM groceries_categories WHERE id = ?';
-  mysqlPool.query(deleteQuery, [id], (err, results) => {
-    if (err) {
-      console.error('Error executing query:', err);
-      res.status(500).json({ error: 'Database error' });
-      return next(err);
-    }
-    console.log(`${categoryName} (id#${id}) removed from list at `+
-                `${formattedRequestTime}`);
-    res.status(200).json({ success: true });
-  });
-});
-
-// SYNC ENDPOINTS
-app.post('/syncup/groceries', (req, res) => {
-  const groceries = req.body;
-
-  const values = groceries.map( g => [g.name, g.category_id, g.toBeBought] );
-
-  const query = `INSERT INTO groceries_list (name, category_id, to_be_bought)
-                VALUES ?
-                ON DUPLICATE KEY UPDATE
-                to_be_bought = VALUES(to_be_bought)
-                `;
-
-  mysqlPool.query( query, [values], (err, results) => {
-    if (err) {
-      console.error('Error executing query:', err);
-      res.status(500).json({ error: 'Database error' });
-      return next(err);
-    }
-    console.log("Sync groceries table to Server.");
-    res.status(200).json({ success: true });
-  });
-});
-
-app.post('/syncup/categories', (req, res) => {
-  const categories = req.body;
-
-  const values = categories.map( category => [category.name] );
-
-  const query = 'INSERT IGNORE INTO groceries_categories(name) VALUES ?;';
-
-  mysqlPool.query( query, [values], (err, results) => {
-    if (err) {
-      console.error('Error executing query:', err);
-      res.status(500).json({ error: 'Database error' });
-      return next(err);
-    }
-    console.log("Synced categories table to Server.");
-    res.status(200).json({ success: true });
   });
 });
 
