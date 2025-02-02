@@ -7,11 +7,10 @@ const jwt = require('jsonwebtoken');
 require('dotenv').config();
 
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
-const MYSQL_USER = process.env.MYSQL_USER;
-const MYSQL_PASSWORD = process.env.MYSQL_PASSWORD;
 
 const categoriesRoutes = require('./api/categories');
 const groceriesRoutes = require('./api/groceries');
+const syncRoutes = require('./api/sync');
 
 const app = express();
 
@@ -21,8 +20,7 @@ app.use(cors());
 app.use(express.json()); // parses req automatically
 app.use('/api/categories', categoriesRoutes);
 app.use('/api/groceries', groceriesRoutes);
-
-
+app.use('/api/sync', syncRoutes);
 
 // Serve static files from the 'public' directory
 // ** Useless now, might put pictures in public directory for shit & giggles **

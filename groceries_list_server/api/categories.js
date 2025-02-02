@@ -46,24 +46,5 @@ router.delete('/:id', (req, res) => {
   });
 });
 
-// SYNC UP
-router.post('/syncup', (req, res) => {
-  const categories = req.body;
-
-  const values = categories.map( category => [category.name] );
-
-  const query = 'INSERT IGNORE INTO groceries_categories(name) VALUES ?;';
-
-  mysqlPool.query( query, [values], (err, results) => {
-    if (err) {
-      console.error('Error executing categories INSERT query:', err);
-      res.status(500).json({ error: 'Database error' });
-      return next(err);
-    }
-    console.log("Synced categories table to Server.", results);
-    res.status(200).json({ success: true });
-  });
-});
-
 // Export the router so it can be used in server.js
 module.exports = router;

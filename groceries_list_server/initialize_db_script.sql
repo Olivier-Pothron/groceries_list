@@ -14,12 +14,12 @@ CREATE TABLE groceries_list (
 	to_be_bought INT DEFAULT 0,
 	category_id INT,
 	FOREIGN KEY (category_id) REFERENCES groceries_categories(id),
-	CONSTRAINT unique_name_category UNIQUE (name, category_id)
+	UNIQUE (name, category_id)
 );
 
 -- Step 1: Insert "No category" row if it doesn't already exist
 INSERT INTO groceries_categories (id, name)
-SELECT -1, 'sans categorie'
+SELECT -1, 'no category'
 WHERE NOT EXISTS (SELECT 1 FROM groceries_categories WHERE id = -1);
 
 -- Step 2: Create the trigger to handle NULL category_id
