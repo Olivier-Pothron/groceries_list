@@ -1,0 +1,127 @@
+/* MODAL SHIT */
+.modal {
+  display: flex;
+  justify-content: center;
+}
+
+.modal:before {
+  content: "";
+  position: fixed;
+  display: none;
+  top: 0; right: 0; bottom: 0; left: 0;
+  background: rgba(0, 0, 0, 0.7);
+}
+
+.modal:target:before {
+  display: block;
+}
+
+.modal-content {
+  background: rgba(64, 96, 96, 1);
+  z-index: 10;
+  padding: 8px;
+  position: fixed;
+  width:90%;
+  max-width:600px;
+  box-shadow: 4px 4px 4px rgba(0, 0, 0, 0.7);
+  border-radius: 8px;
+  top: 50%;
+  transform: translateY(200%);
+  opacity: 0.6;
+  transition: transform 0.3s ease-out, opacity 0.3s ease-out;
+}
+
+.modal:target .modal-content {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+.modal-header, .modal-footer {
+  border: 4px dashed white;
+  border-radius: 4px;
+  padding: 4px;
+}
+
+.modal-footer {
+  text-align: right;
+}
+
+.modal-body {
+  margin: 8px 0 8px 0;
+}
+
+/* ELEMENTS STYLE */
+.btn {
+  padding: 4px;
+  display: inline-block;
+  position: relative;
+  text-align: center;
+  text-decoration: none;
+  color: white;
+  font-size: 18px;
+}
+
+#val-btn {
+  background-color: green;
+  border-radius: 8px;
+}
+
+#show-btn {
+  background-color: var(--secondary-color);
+  border-radius: 8px;
+  position: static;
+}
+
+#cl-btn {
+  border-radius: 4px;
+  background: red;
+  border: 2px, solid, white;
+  position: absolute;
+  right: 0px;
+  top: 0px;
+  margin: 10px;
+}
+
+h3 {
+  margin: 0;
+}
+
+.testing {
+  content: "ClusterFUCK";
+}
+
+.validation {
+  color: white;
+  padding: 2px;
+  font-weight: bold;
+  border-radius: 50%;
+  display: none;
+}
+
+.wrong {
+  background: red;
+}
+
+.right {
+  background: green;
+}
+
+#validation-feedback {
+  color: red;
+  font-style: italic;
+  font-weight: bold;
+}
+
+.shake {
+  animation: shake 0.3s ease;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-10px); }
+  40%, 80% { transform: translateX(10px); }
+}
+
+#custom-category-input {
+  display: none;
+}

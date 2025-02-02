@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="css/groceries.css">
+    <link rel="stylesheet" href="css/components/modal.css">
+    <title>My Groceries List</title>
+  </head>
+  <body>
+    <div class="container">
+      <header class="sticky">
+        <div class="header-buttons">
+          <a href="groceries.html" class="link">List of Groceries</a>
+          <h1 class="page-title">THIS IS MY LIST OF GROCERIES</h1>
+        </div>
+      </header>
+
+
+      <div id="my-groceries-container">
+        <ul id="my-groceries-list"></ul>
+      </div>
+
+      <button id="local-rem-button">DELETE THE LOCAL DB</button>
+
+      <div id="log-container"></div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.6.2/sql-wasm.js"></script>
+    <script src="js/database/database_init.js"></script>
+    <script src="js/database/database.js"></script>
+    <script src="js/UI/logging_tool.js"></script>
+    <script src="js/UI/db_interactions.js"></script>
+    <script src="js/UI/render_myList.js"></script>
+    <script src="js/UI/events.js"></script>
+  </body>
+</html>
