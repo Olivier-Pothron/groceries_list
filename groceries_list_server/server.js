@@ -22,9 +22,8 @@ app.use('/api/categories', categoriesRoutes);
 app.use('/api/groceries', groceriesRoutes);
 app.use('/api/sync', syncRoutes);
 
-// Serve static files from the 'public' directory
-// ** Useless now, might put pictures in public directory for shit & giggles **
-app.use(express.static('public'));
+app.set("view engine", "ejs"); // Set EJS as the templating engine
+app.use(express.static('public')); // Serve static files from the 'public' directory
 
 app.use((req, res, next) => {
   req.requestTime = Date.now();
@@ -57,6 +56,29 @@ app.get('/admin', (req, res) => {
   } else {
     res.status(401).send('Invalid password');
   }
+});
+
+app.get('/groceries', (req, res) => {
+  let query = `
+      SELECT  groceries_list.id,
+              groceries_list.name AS name,
+              groceries_list.to_be_bought,
+              groceries_categories.name AS category,
+              groceries_list.category_id AS category_id
+      FROM    groceries_list
+      LEFT JOIN    groceries_categories
+      ON      groceries_list.category_id = groceries_categories.id;
+      `;
+
+  mysqlPool.query(query, (err, results) => {
+    if (err) {
+      console.error('Error executing query:', err);
+      return next(err);
+    }
+    console.log("seems that route is okay");
+    console.log(results);
+    res.render('groceries', { groceries: results });
+  });
 });
 
 app.get('/myList', (req, res) => {
