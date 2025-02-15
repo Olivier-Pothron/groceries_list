@@ -9,7 +9,7 @@ const myGroceriesList = document.getElementById("my-groceries-list");
 
 const localButt = document.getElementById("local-button");
 const myListButt = document.getElementById("fetch-tbb-groceries");
-const testRetButt = document.getElementById("test-retrieve-button");
+const testButt = document.getElementById("test-button");
 const localRemButt = document.getElementById("local-rem-button");
 const syncupButt = document.getElementById("syncup-button");
 
@@ -31,18 +31,6 @@ function groceriesDropDown(groceriesList, categoryButton) {
   }
 }
 
-// ADD CATEGORY TO SELECTOR
-function addCategoryToSelector(newCategory, newCategoryId) {
-  // console.log("=> addCategoryToSelector");
-
-  newSelectorOption = document.createElement("option");
-  newSelectorOption.setAttribute('data-category-id', newCategoryId);
-  newSelectorOption.textContent = newCategory;
-  newSelectorOption.value = newCategory;
-
-  categorySelector.add(newSelectorOption, categorySelector.options.length - 1);
-}
-
 // EVENTS //
 
 allGroceriesList.addEventListener("click", (event) => {
@@ -56,22 +44,43 @@ allGroceriesList.addEventListener("click", (event) => {
 
   // TOGGLING DISPLAY OF CATEGORY LIST
   if (categoryHeader) {
-    // Listen for the transitionstart event
     const groceriesList = categoryHeader.nextElementSibling;
-    console.log(groceriesList)
     const categoryButton = categoryHeader.querySelector('.category-button');
-    console.log(categoryButton);
     groceriesDropDown(groceriesList, categoryButton);
   }
 });
 
 // API CALLS
-function toggleToBeBoughtInDB(element) {
+
+function addCategory (name) {       // ✓
+  console.log(name)
+    fetch("http://localhost:3000/api/categories/", {
+      method: "POST",
+      headers: {
+        "Content-type": "application/json"
+      },
+      body: JSON.stringify({ newCategoryName: name})
+    })
+    .then(response => {
+      if(!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+      return response.json();
+    })
+    .then(data => {
+      const newCategory = data.name;
+      const newCategoryId = data.id;
+      addCategoryToSelector(newCategory, newCategoryId);
+    })
+    .catch(error => console.error("Error adding category:", error));
+};
+
+function toggleToBeBoughtInDB(element) {  // ✓
   const groceryName = element.dataset.name;
   const groceryId = element.dataset.id;
   const toBeBoughtState = element.dataset.toBeBought;
   const newToBeBoughtState = toBeBoughtState == '0' ? 1 : 0;
-  console.log(`toBeBought state : ${element.dataset.toBeBought}`);
+
   fetch(`http://localhost:3000/api/groceries/${groceryId}`, {
     method: "PUT",
     headers: {
@@ -83,7 +92,7 @@ function toggleToBeBoughtInDB(element) {
     if (response.ok) {  // Update client side
       element.dataset.toBeBought = newToBeBoughtState;
       element.classList.toggle("to-be-bought");
-      console.log(`${groceryName} to_be_bought state updated to ${newToBeBoughtState}`);
+      userLog(`${groceryName} to_be_bought state updated to ${newToBeBoughtState}`, 'success');
     } else {
       console.error("Error updating to_be_bought value!");
     }

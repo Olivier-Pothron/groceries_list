@@ -56,9 +56,7 @@
       </div>
 
       <button id="update-button">UPDATE LIST</button>
-
-      <!-- <button id="local-rem-button">DELETE THE LOCAL DB</button> -->
-
+      <button id="test-button">TEST</button>
       <div id="log-container"></div>
 
       <!--MODAL-->
@@ -85,6 +83,21 @@
               <div>
                 <select id="category-selector">
                   <option value="" disabled selected>Select category</option>
+                  <% const categoriesIdMap = groceries.reduce( (acc, grocery) => {
+                    const categoryName = grocery.category;
+                    const categoryId = grocery.category_id;
+                    if(!acc[categoryName]) {
+                      acc[categoryName] = categoryId;
+                    }
+                    return acc;
+                  }, {} ); %>
+                  <% for( let category in categoriesIdMap ) { %>
+                    <option value="<%= category %>"
+                          data-id="<%= categoriesIdMap[category] %>"
+                    >
+                      <%= category %>
+                    </option>
+                  <% } %>
                 </select>
                 <input class="input-field"
                 id="custom-category-input"
@@ -105,6 +118,7 @@
 
     <script src="js/groceries.js"></script>
     <script src="js/logging_tool.js"></script>
+    <script src="js/modal_form.js"></script>
     <script src="js/events.js"></script>
   </body>
 </html>

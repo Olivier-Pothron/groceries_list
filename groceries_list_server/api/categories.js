@@ -15,6 +15,38 @@ router.get('/', (req, res) => {
   });
 });
 
+// ADD CATEGORY
+router.post('/', (req, res) => {
+  const { newCategoryName } = req.body;
+  console.log(`New category name : ${newCategoryName}`);
+
+  // Validate categoryName is not empty
+  if (!newCategoryName) {
+    return res.status(400).json({ error: 'Category name is required' });
+  }
+
+  const insertQuery = 'INSERT INTO groceries_categories(name) VALUES (?)';
+  mysqlPool.query(insertQuery, [newCategoryName], (err, insertResults) => {
+    if (err) {
+      console.error('Error executing query:', err);
+      res.status(500).json({ error: 'Database error' });
+      return next(err);
+    }
+
+    const newCategoryId = insertResults.insertId;
+    const newCategory = { id: newCategoryId,
+                          name: newCategoryName};
+
+    // Formatting the request time to a more readable format
+    const formattedRequestTime = new Date(req.requestTime).toLocaleString();
+
+    console.log(`${newCategoryName} inserted into Categories List with `+
+                `ID ${newCategoryId} ` +
+                `at ${formattedRequestTime}`);
+    res.status(200).json(newCategory);
+  });
+});
+
 // DELETE CATEGORY
 router.delete('/:id', (req, res) => {
   const id = req.params.id;

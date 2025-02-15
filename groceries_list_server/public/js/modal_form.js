@@ -44,6 +44,17 @@ addNewItemForm.addEventListener("submit", (event) => {
   window.location.hash = ''; //close the modal
 });
 
+// ADD CATEGORY TO SELECTOR
+function addCategoryToSelector(newCategory, newCategoryId) {
+  console.log(`=> addCategoryToSelector : ${newCategory} id : ${newCategoryId}`);
+
+  newSelectorOption = document.createElement("option");
+  newSelectorOption.setAttribute('data-category-id', newCategoryId);
+  newSelectorOption.textContent = newCategory;
+  newSelectorOption.value = newCategory;
+
+  categorySelector.add(newSelectorOption, categorySelector.options.length - 1);
+}
 
 // LOGIC HELPERS & HANDLERS
 

@@ -1,5 +1,4 @@
 const express = require('express');
-const mysql = require('mysql2');
 const mysqlPool = require('./db');
 const cors = require('cors');
 const bcrypt = require('bcrypt');
@@ -60,14 +59,14 @@ app.get('/admin', (req, res) => {
 
 app.get('/groceries', (req, res) => {
   let query = `
-      SELECT  groceries_list.id,
-              groceries_list.name AS name,
-              groceries_list.to_be_bought,
-              groceries_categories.name AS category,
-              groceries_list.category_id AS category_id
-      FROM    groceries_list
-      LEFT JOIN    groceries_categories
-      ON      groceries_list.category_id = groceries_categories.id;
+      SELECT  g_list.id,
+              g_list.name AS name,
+              g_list.to_be_bought,
+              g_cat.name AS category,
+              g_list.category_id AS category_id
+      FROM    groceries_list AS g_list
+      LEFT JOIN    groceries_categories AS g_cat
+      ON      g_list.category_id = g_cat.id;
       `;
 
   mysqlPool.query(query, (err, results) => {
@@ -75,9 +74,8 @@ app.get('/groceries', (req, res) => {
       console.error('Error executing query:', err);
       return next(err);
     }
-    console.log("seems that route is okay");
-    console.log(results);
     res.render('groceries', { groceries: results });
+    console.log("Loaded groceries page.");
   });
 });
 
