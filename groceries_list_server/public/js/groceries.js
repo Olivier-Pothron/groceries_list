@@ -53,27 +53,59 @@ allGroceriesList.addEventListener("click", (event) => {
 // API CALLS
 
 function addCategory (name) {       // ✓
-  console.log(name)
-    fetch("http://localhost:3000/api/categories/", {
-      method: "POST",
-      headers: {
-        "Content-type": "application/json"
-      },
-      body: JSON.stringify({ newCategoryName: name})
-    })
-    .then(response => {
-      if(!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
-      }
-      return response.json();
-    })
-    .then(data => {
-      const newCategory = data.name;
-      const newCategoryId = data.id;
-      addCategoryToSelector(newCategory, newCategoryId);
-    })
-    .catch(error => console.error("Error adding category:", error));
+  console.log(name);
+
+  fetch("http://localhost:3000/api/categories/", {
+    method: "POST",
+    headers: {
+      "Content-type": "application/json"
+    },
+    body: JSON.stringify({ newCategoryName: name})
+  })
+  .then(response => {
+    if(!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+    return response.json();
+  })
+  .then(data => {
+    const newCategory = data.name;
+    const newCategoryId = data.id;
+    addCategoryToSelector(newCategory, newCategoryId);
+    userLog(`Category '${newCategory}' added with ID '${categoryId}'`, 'success');
+  })
+  .catch(error => console.error("Error adding category:", error));
 };
+
+function addGrocery (name, categoryId) {  // writes in db with cat_id
+  console.log(name);
+
+  fetch("http://localhost:3000/api/groceries/", {
+    method: "POST",
+    headers: {
+      "Content-type": "application/json"
+    },
+    body: JSON.stringify({ newGroceryName: name, categoryId: categoryId})
+  })
+  .then(response => {
+    if(!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+    return response.json();
+  })
+  .then(data => {
+    console.log(data);
+    const newGrocery = data.item_name;
+    const newGroceryId = data.id;
+    const newGroceryCategoryName = data.category;
+    const newGroceryCategoryId = data.category_id;
+    userLog(`Grocery '${newGrocery}' added with ID '${newGroceryId}'
+      in category '${newGroceryCategoryName}' of ID '${newGroceryCategoryId}'`,
+      'success');
+
+  })
+  .catch(error => console.error("Error adding grocery:", error));
+}
 
 function toggleToBeBoughtInDB(element) {  // ✓
   const groceryName = element.dataset.name;

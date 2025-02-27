@@ -16,6 +16,9 @@ addNewItemForm.addEventListener("submit", (event) => {
 
   event.preventDefault();
 
+  console.log(`Item name : ${formItemName.value}`)
+  console.log(`Category name : ${categorySelector.options[categorySelector.selectedIndex].value}`)
+
   const {
     valid: isItemNameValid,
     name: itemName } = validateItemNameInput();
@@ -134,22 +137,22 @@ const processFormSubmission = (itemName, categoryId, categoryName, categoryType)
   }
 }
 
-const handleCustomCategory = (customCategoryName, callback) => {
-  addCategory(customCategoryName, function(error, categoryId) {
-    if(error) {
-      if (error.message.includes("UNIQUE constraint failed")) {                 // check if cat already in DB
-        userLog(`${categoryName} already in database !`, 'warning');
-      } else {
-        userLog("Error adding category!", 'error');
-      }
-      return;
-    } else if (categoryId) {
-      userLog(`Category '${customCategoryName}' added with ID '${categoryId}'`, 'success');
-      addCategoryToSelector(customCategoryName, categoryId);
-      callback(categoryId);
-    }
-  });
-}
+// const handleCustomCategory = (customCategoryName, callback) => {
+//   addCategory(customCategoryName, function(error, categoryId) {
+//     if(error) {
+//       if (error.message.includes("UNIQUE constraint failed")) {                 // check if cat already in DB
+//         userLog(`${categoryName} already in database !`, 'warning');
+//       } else {
+//         userLog("Error adding category!", 'error');
+//       }
+//       return;
+//     } else if (categoryId) {
+//       userLog(`Category '${customCategoryName}' added with ID '${categoryId}'`, 'success');
+//       addCategoryToSelector(customCategoryName, categoryId);
+//       callback(categoryId);
+//     }
+//   });
+// }
 
 const handleGroceryAddition = (itemName, categoryId, categoryName, callback) => {
   addGrocery(itemName, categoryId, function(error, groceryId) {
@@ -164,7 +167,7 @@ const handleGroceryAddition = (itemName, categoryId, categoryName, callback) => 
       const groceryObject = {
         id: groceryId,
         name: itemName,
-        category: categoryName || "No category"
+        category: categoryName || "No category"
       };
       callback(groceryObject);
       userLog(`'${groceryObject.name}' added to '${groceryObject.category}'`, 'success');

@@ -21,17 +21,17 @@ router.get('/', (req, res) => {
 
 // ADD GROCERY
 router.post('/', (req, res) => {
-  let { itemName, categoryId } = req.body;
+  let { newGroceryName, categoryId } = req.body;
 
   categoryId = categoryId || null;
 
-  // Validate itemName is not empty
-  if (!itemName) {
+  // Validate newGroceryName is not empty
+  if (!newGroceryName) {
     return res.status(400).json({ error: 'Item name is required' });
   }
 
   const insertQuery = 'INSERT INTO groceries_list(name, category_id) VALUES (?, ?)';
-  mysqlPool.query(insertQuery, [itemName, categoryId], (err, insertResults) => {
+  mysqlPool.query(insertQuery, [newGroceryName, categoryId], (err, insertResults) => {
     if (err) {
       console.error('Error executing query:', err);
       res.status(500).json({ error: 'Database error' });
@@ -39,7 +39,8 @@ router.post('/', (req, res) => {
     }
 
     const newItemId = insertResults.insertId;
-    const categoryQuery = `SELECT g.id, g.name, g.to_be_bought, c.name AS category
+    const categoryQuery = `SELECT g.id, g.name, g.to_be_bought,
+                          c.name AS category, c.id AS category_id
                           FROM groceries_list AS g
                           LEFT JOIN groceries_categories AS c
                           ON g.category_id = c.id
@@ -53,15 +54,17 @@ router.post('/', (req, res) => {
       }
 
       const categoryName = queryResults[0].category;
+      const categoryId = queryResults[0].category_id;
       const newItem = { id: newItemId,
-                        item_name: itemName,
+                        name: newGroceryName,
                         category: categoryName,
+                        category_id: categoryId,
                         to_be_bought: 0 };
 
       // Formatting the request time to a more readable format
       const formattedRequestTime = new Date(req.requestTime).toLocaleString();
 
-      console.log(`${itemName} inserted into Groceries List with `+
+      console.log(`${newGroceryName} inserted into Groceries List with `+
                   `ID ${newItemId} and Category ${categoryName} ` +
                   `at ${formattedRequestTime}`);
       res.status(200).json(newItem);

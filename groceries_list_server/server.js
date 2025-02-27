@@ -16,7 +16,16 @@ const app = express();
 // Enable CORS for all routes
 app.use(cors());
 
-app.use(express.json()); // parses req automatically
+// Parses req automatically
+app.use(express.json());
+
+// Middleware to add request timestamp
+app.use((req, res, next) => {
+  req.requestTime = Date.now();
+  next();
+});
+
+// API routes
 app.use('/api/categories', categoriesRoutes);
 app.use('/api/groceries', groceriesRoutes);
 app.use('/api/sync', syncRoutes);
@@ -24,10 +33,6 @@ app.use('/api/sync', syncRoutes);
 app.set("view engine", "ejs"); // Set EJS as the templating engine
 app.use(express.static('public')); // Serve static files from the 'public' directory
 
-app.use((req, res, next) => {
-  req.requestTime = Date.now();
-  next();
-});
 
 // ** Middleware to authenticate JWT **
 // const authenticateToken = (req, res, next) => {
