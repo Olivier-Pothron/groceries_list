@@ -35,7 +35,7 @@ router.post('/', (req, res) => {
     if (err) {
       console.error('Error executing query:', err);
       res.status(500).json({ error: 'Database error' });
-      return next(err);
+      return;
     }
 
     const newItemId = insertResults.insertId;
@@ -82,7 +82,7 @@ router.delete('/:id', (req, res) => {
     if (err) {
       console.error('Error executing query:', err);
       res.status(500).json({ error: 'Database error' });
-      return next(err);
+      return;
     }
     itemName = results[0].item_name;
   });
@@ -95,7 +95,7 @@ router.delete('/:id', (req, res) => {
     if (err) {
       console.error('Error executing query:', err);
       res.status(500).json({ error: 'Database error' });
-      return next(err);
+      return;
     }
     console.log(`${itemName} (id#${id}) removed from list at `+
                 `${formattedRequestTime}`);
@@ -114,7 +114,7 @@ router.put('/:id', (req, res) => {
     if (err) {
       console.error('Error executing query:', err);
       res.status(500).json({ error: 'Database error' });
-      return next(err);
+      return;
     }
     if (!results.length) {
       res.status(404).json({ error: 'Item not found' });
@@ -127,7 +127,7 @@ router.put('/:id', (req, res) => {
       if (err) {
         console.error('Error executing query:', err);
         res.status(500).json({ error: 'Database error' });
-        return next(err);
+        return;
       }
       console.log(`Item #${id} / To be bought : ${toBeBought}`);
       res.status(200).json({ success: true });

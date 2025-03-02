@@ -53,9 +53,7 @@ allGroceriesList.addEventListener("click", (event) => {
 // API CALLS
 
 function addCategory (name) {       // ✓
-  console.log(name);
-
-  fetch("http://localhost:3000/api/categories/", {
+  return fetch("http://localhost:3000/api/categories/", {
     method: "POST",
     headers: {
       "Content-type": "application/json"
@@ -69,18 +67,13 @@ function addCategory (name) {       // ✓
     return response.json();
   })
   .then(data => {
-    const newCategory = data.name;
-    const newCategoryId = data.id;
-    addCategoryToSelector(newCategory, newCategoryId);
-    userLog(`Category '${newCategory}' added with ID '${categoryId}'`, 'success');
+    return data;
   })
   .catch(error => console.error("Error adding category:", error));
 };
 
-function addGrocery (name, categoryId) {  // writes in db with cat_id
-  console.log(name);
-
-  fetch("http://localhost:3000/api/groceries/", {
+function addGrocery (name, categoryId) {  // ✓
+  return fetch("http://localhost:3000/api/groceries/", {
     method: "POST",
     headers: {
       "Content-type": "application/json"
@@ -94,15 +87,7 @@ function addGrocery (name, categoryId) {  // writes in db with cat_id
     return response.json();
   })
   .then(data => {
-    console.log(data);
-    const newGrocery = data.item_name;
-    const newGroceryId = data.id;
-    const newGroceryCategoryName = data.category;
-    const newGroceryCategoryId = data.category_id;
-    userLog(`Grocery '${newGrocery}' added with ID '${newGroceryId}'
-      in category '${newGroceryCategoryName}' of ID '${newGroceryCategoryId}'`,
-      'success');
-
+    return data;
   })
   .catch(error => console.error("Error adding grocery:", error));
 }

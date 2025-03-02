@@ -30,7 +30,7 @@ router.post('/', (req, res) => {
     if (err) {
       console.error('Error executing query:', err);
       res.status(500).json({ error: 'Database error' });
-      return next(err);
+      return;
     }
 
     const newCategoryId = insertResults.insertId;
@@ -57,7 +57,7 @@ router.delete('/:id', (req, res) => {
     if (err) {
       console.error('Error executing query:', err);
       res.status(500).json({ error: 'Database error' });
-      return next(err);
+      return;
     }
     categoryName = results[0].name;
   });
@@ -70,7 +70,7 @@ router.delete('/:id', (req, res) => {
     if (err) {
       console.error('Error executing query:', err);
       res.status(500).json({ error: 'Database error' });
-      return next(err);
+      return;
     }
     console.log(`${categoryName} (id#${id}) removed from list at `+
                 `${formattedRequestTime}`);

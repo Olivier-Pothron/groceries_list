@@ -16,8 +16,8 @@ addNewItemForm.addEventListener("submit", (event) => {
 
   event.preventDefault();
 
-  console.log(`Item name : ${formItemName.value}`)
-  console.log(`Category name : ${categorySelector.options[categorySelector.selectedIndex].value}`)
+  console.log(`Item name : ${formItemName.value}`);
+  console.log(`Category name : ${categorySelector.options[categorySelector.selectedIndex].value}`);
 
   const {
     valid: isItemNameValid,
@@ -86,7 +86,7 @@ const validateCategoryInput = () => {
       element.value === customCatName
     );
 
-    if (!customCatName) {
+    if (!customCatName) { // maybe trim to prevent empty spaces
 
       return { valid: true, type: 'empty', value: "" };
 
@@ -116,68 +116,50 @@ const validateCategoryInput = () => {
 //Process Form Submission helper
 const processFormSubmission = (itemName, categoryId, categoryName, categoryType) => {
   if (categoryType === 'custom') {
-    handleCustomCategory(categoryName, (newCategoryId) => {
-      handleGroceryAddition(itemName, newCategoryId, categoryName, (groceryObject) => {
-        const newCategory = createCategoryElement(categoryName, [groceryObject]);
-        allGroceriesList.appendChild(newCategory);
-        console.log("%cSubmission completed!", 'color: green;');
-      });
-    });
+    console.log("custom category sent");
+    handleCustomCategory(categoryName)
+    .then(newCategoryId => handleGroceryAddition(itemName, newCategoryId))
+    .catch(error => {
+      console.error("Error adding grocery:", error);
+    })
   } else {
-    handleGroceryAddition(itemName, categoryId, categoryName, (groceryObject) => {
-      if (groceryObject.category) {
-        const newGrocery = createGroceryElement(groceryObject);
-        const categoryQuery = `[data-category-name="${groceryObject.category}"]`;
-        const existingCategory = allGroceriesList.querySelector(categoryQuery);
-        const existingCategoryList = existingCategory.querySelector("ul");
-        existingCategoryList.appendChild(newGrocery);
-      }
-      console.log("%cSubmission completed!", 'color: green;');
-    });
+    handleGroceryAddition(itemName, categoryId)
+    .catch(error => {
+      console.error("Error adding grocery:", error);
+    })
   }
 }
 
-// const handleCustomCategory = (customCategoryName, callback) => {
-//   addCategory(customCategoryName, function(error, categoryId) {
-//     if(error) {
-//       if (error.message.includes("UNIQUE constraint failed")) {                 // check if cat already in DB
-//         userLog(`${categoryName} already in database !`, 'warning');
-//       } else {
-//         userLog("Error adding category!", 'error');
-//       }
-//       return;
-//     } else if (categoryId) {
-//       userLog(`Category '${customCategoryName}' added with ID '${categoryId}'`, 'success');
-//       addCategoryToSelector(customCategoryName, categoryId);
-//       callback(categoryId);
-//     }
-//   });
-// }
-
-const handleGroceryAddition = (itemName, categoryId, categoryName, callback) => {
-  addGrocery(itemName, categoryId, function(error, groceryId) {
-    if(error) {
-      if (error.message.includes("UNIQUE constraint failed")) {                 // check if item in cat already in dd
-        userLog(`${itemName} already in database with category ${categoryName}.`, 'warning');
-      } else {
-        userLog("Error adding grocery!", 'error');
-      }
-      return;
-    } else if (groceryId) {
-      const groceryObject = {
-        id: groceryId,
-        name: itemName,
-        category: categoryName || "No category"
-      };
-      callback(groceryObject);
-      userLog(`'${groceryObject.name}' added to '${groceryObject.category}'`, 'success');
+const handleCustomCategory = (customCategoryName) => {
+  return addCategory(customCategoryName)
+  .then(data => {
+    if(data) {
+      const newCategory = data.name;
+      const newCategoryId = data.id;
+      console.log(`Custom category added with ID ${newCategoryId}!`);
+      addCategoryToSelector(newCategory, newCategoryId);
+      userLog(`Category '${newCategory}' added`, 'success');
+      return newCategoryId;
     }
+  })
+  .catch(error => {
+    console.log("Error adding custom category!");
+    throw error;
+  })
+}
+
+const handleGroceryAddition = (itemName, categoryId) => {
+  return addGrocery(itemName, categoryId)
+  .then(groceryObject => {
+    userLog(`'${groceryObject.name}' added to '${groceryObject.category}'`, 'success');
+  })
+  .catch(error => {
+    console.log("Error adding custom category!");
   })
 }
 
 // UI HELPERS FUNCTIONS
 function shakeIt() {
-
   modalContent.classList.add("shake");
       modalContent.addEventListener("animationend", () => {
         modalContent.classList.remove("shake");
@@ -185,7 +167,6 @@ function shakeIt() {
 }
 
 const showValidationIcon = (field, isValid) => {
-
   const parentDiv = field.parentElement;
   const validationIcon = parentDiv.querySelector(".validation");
   validationIcon.style.display = "inline";
@@ -194,7 +175,6 @@ const showValidationIcon = (field, isValid) => {
 }
 
 const hideValidationIcon = (field) => {
-
   const parentDiv = field.parentElement;
   const validationIcon = parentDiv.querySelector(".validation");
   validationIcon.classList.remove("wrong");
@@ -203,7 +183,6 @@ const hideValidationIcon = (field) => {
 }
 
 const validationText = (itemValidation, categoryValidation) => {
-
   const messages = [];
   if (!itemValidation.valid) messages.push(itemValidation.comment);
   if (!categoryValidation.valid) messages.push(categoryValidation.comment);
@@ -219,7 +198,7 @@ window.addEventListener("hashchange", () => {
 });
 
 //Shows or hides custom category input field
-categorySelector.addEventListener("change", () => {
+categorySelector.addEventListener("change", () => {       // ✓
   selectedOption = categorySelector.value;
 
   if (selectedOption === "custom") {
