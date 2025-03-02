@@ -16,9 +16,6 @@ addNewItemForm.addEventListener("submit", (event) => {
 
   event.preventDefault();
 
-  console.log(`Item name : ${formItemName.value}`);
-  console.log(`Category name : ${categorySelector.options[categorySelector.selectedIndex].value}`);
-
   const {
     valid: isItemNameValid,
     name: itemName } = validateItemNameInput();
@@ -87,36 +84,26 @@ const validateCategoryInput = () => {
     );
 
     if (!customCatName) { // maybe trim to prevent empty spaces
-
       return { valid: true, type: 'empty', value: "" };
-
     } else if (isCategoryInSelector) {                                          // maybe try to return valid and
-                                                                                // fetch id from existing option
       return { valid: false, comment: "Category already in selector!"};
-
     } else {
-
       return { valid: true, type: 'custom', name: customCatName };
-
     }
-
   } else if (selectedOption.value === "") {
-
     return { valid: true, type: 'empty', value: "" };
-
   } else {
-
     return { valid: true,
       type: 'regular',
       name: selectedOption.value,
-      id: selectedOption.dataset.categoryId };
+      id: selectedOption.dataset.id };
   }
 }
 
 //Process Form Submission helper
 const processFormSubmission = (itemName, categoryId, categoryName, categoryType) => {
+  // console.log(itemName, categoryId, categoryName, categoryType);
   if (categoryType === 'custom') {
-    console.log("custom category sent");
     handleCustomCategory(categoryName)
     .then(newCategoryId => handleGroceryAddition(itemName, newCategoryId))
     .catch(error => {
@@ -132,10 +119,10 @@ const processFormSubmission = (itemName, categoryId, categoryName, categoryType)
 
 const handleCustomCategory = (customCategoryName) => {
   return addCategory(customCategoryName)
-  .then(data => {
-    if(data) {
-      const newCategory = data.name;
-      const newCategoryId = data.id;
+  .then(categoryObject => {
+    if(categoryObject) {
+      const newCategory = categoryObject.name;
+      const newCategoryId = categoryObject.id;
       console.log(`Custom category added with ID ${newCategoryId}!`);
       addCategoryToSelector(newCategory, newCategoryId);
       userLog(`Category '${newCategory}' added`, 'success');
@@ -143,7 +130,7 @@ const handleCustomCategory = (customCategoryName) => {
     }
   })
   .catch(error => {
-    console.log("Error adding custom category!");
+    console.error("Error adding custom category:", error);
     throw error;
   })
 }
@@ -154,7 +141,7 @@ const handleGroceryAddition = (itemName, categoryId) => {
     userLog(`'${groceryObject.name}' added to '${groceryObject.category}'`, 'success');
   })
   .catch(error => {
-    console.log("Error adding custom category!");
+    console.error("Error adding custom category:", error);
   })
 }
 
