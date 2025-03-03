@@ -56,6 +56,21 @@ function addCategoryToSelector(newCategory, newCategoryId) {
   categorySelector.add(newSelectorOption, categorySelector.options.length - 1);
 }
 
+// ADD CATEGORY TO MASTER LIST
+function addCategoryToList(categoryName) {
+  const newCategory = createCategoryElement(categoryName);
+  allGroceriesList.appendChild(newCategory);
+}
+
+// ADD GROCERY TO CATEGORY LIST
+function addGroceryToCategoryList(groceryObject) {
+  const newGrocery = createGroceryElement(groceryObject);
+  const categoryQuery = `[data-name="${groceryObject.category}"]`;
+  const existingCategory = allGroceriesList.querySelector(categoryQuery);
+  const existingCategoryList = existingCategory.querySelector("ul");
+  existingCategoryList.appendChild(newGrocery);
+}
+
 // LOGIC HELPERS & HANDLERS
 
 //Checks for validation of item name
@@ -93,10 +108,12 @@ const validateCategoryInput = () => {
   } else if (selectedOption.value === "") {
     return { valid: true, type: 'empty', value: "" };
   } else {
-    return { valid: true,
+    return {
+      valid: true,
       type: 'regular',
       name: selectedOption.value,
-      id: selectedOption.dataset.id };
+      id: selectedOption.dataset.id
+    };
   }
 }
 
@@ -106,11 +123,17 @@ const processFormSubmission = (itemName, categoryId, categoryName, categoryType)
   if (categoryType === 'custom') {
     handleCustomCategory(categoryName)
     .then(newCategoryId => handleGroceryAddition(itemName, newCategoryId))
+    .then(groceryObject => {
+      addGroceryToCategoryList(groceryObject);
+    })
     .catch(error => {
       console.error("Error adding grocery:", error);
     })
   } else {
     handleGroceryAddition(itemName, categoryId)
+    .then(groceryObject => {
+      addGroceryToCategoryList(groceryObject);
+    })
     .catch(error => {
       console.error("Error adding grocery:", error);
     })
@@ -124,6 +147,7 @@ const handleCustomCategory = (customCategoryName) => {
       const newCategory = categoryObject.name;
       const newCategoryId = categoryObject.id;
       console.log(`Custom category added with ID ${newCategoryId}!`);
+      addCategoryToList(newCategory);
       addCategoryToSelector(newCategory, newCategoryId);
       userLog(`Category '${newCategory}' added`, 'success');
       return newCategoryId;
@@ -139,6 +163,7 @@ const handleGroceryAddition = (itemName, categoryId) => {
   return addGrocery(itemName, categoryId)
   .then(groceryObject => {
     userLog(`'${groceryObject.name}' added to '${groceryObject.category}'`, 'success');
+    return groceryObject;
   })
   .catch(error => {
     console.error("Error adding custom category:", error);

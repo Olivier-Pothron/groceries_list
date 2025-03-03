@@ -6,11 +6,6 @@ CORDOVA APP
 BROWSER CLIENT ::
 
 - add local database *check*
-- add modal
-psudocode ->
-validate name
-validate category
-if both allright send it
 
 
 
@@ -18,4 +13,11 @@ if both allright send it
 - segregate events
 - make helper functions
 
-SERVER
+SERVER :
+
+- server renders ejs file
+- for now 030325, server relies on client js file to handle
+custom category.
+maybe add server side verification and handling addition of
+custom category
+
