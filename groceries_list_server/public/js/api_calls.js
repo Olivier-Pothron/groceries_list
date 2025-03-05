@@ -30,14 +30,19 @@ function addGrocery (name, categoryId) {  // ✓
   })
   .then(response => {
     if(!response.ok) {
-      throw new Error(`HTTP error! Status: ${response.status}`);
+      return response.json().then( err => {
+        throw new Error(err.error || `HTTP error! Status: ${response.status}`);
+      })
     }
     return response.json();
   })
   .then(data => {
     return data;
   })
-  .catch(error => console.error("Error adding grocery:", error));
+  .catch(error => {
+    // console.error("<API CALL> Error adding grocery:", error.message);
+    throw error;
+  });
 }
 
 function toggleToBeBoughtInDB(element) {  // ✓

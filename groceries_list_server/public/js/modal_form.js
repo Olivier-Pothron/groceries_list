@@ -49,7 +49,7 @@ function addCategoryToSelector(newCategory, newCategoryId) {
   console.log(`=> addCategoryToSelector : ${newCategory} id : ${newCategoryId}`);
 
   newSelectorOption = document.createElement("option");
-  newSelectorOption.setAttribute('data-category-id', newCategoryId);
+  newSelectorOption.setAttribute('data-id', newCategoryId);
   newSelectorOption.textContent = newCategory;
   newSelectorOption.value = newCategory;
 
@@ -59,14 +59,14 @@ function addCategoryToSelector(newCategory, newCategoryId) {
 // ADD CATEGORY TO MASTER LIST
 function addCategoryToList(categoryName) {
   const newCategory = createCategoryElement(categoryName);
-  allGroceriesList.appendChild(newCategory);
+  categoriesList.appendChild(newCategory);
 }
 
 // ADD GROCERY TO CATEGORY LIST
 function addGroceryToCategoryList(groceryObject) {
   const newGrocery = createGroceryElement(groceryObject);
   const categoryQuery = `[data-name="${groceryObject.category}"]`;
-  const existingCategory = allGroceriesList.querySelector(categoryQuery);
+  const existingCategory = categoriesList.querySelector(categoryQuery);
   const existingCategoryList = existingCategory.querySelector("ul");
   existingCategoryList.appendChild(newGrocery);
 }
@@ -75,7 +75,6 @@ function addGroceryToCategoryList(groceryObject) {
 
 //Process Form Submission helper
 const processFormSubmission = (itemName, categoryId, categoryName, categoryType) => {
-  // console.log(itemName, categoryId, categoryName, categoryType);
   if (categoryType === 'custom') {
     handleCustomCategory(categoryName)
     .then(newCategoryId => handleGroceryAddition(itemName, newCategoryId))
@@ -91,7 +90,7 @@ const processFormSubmission = (itemName, categoryId, categoryName, categoryType)
       addGroceryToCategoryList(groceryObject);
     })
     .catch(error => {
-      console.error("Error adding grocery:", error);
+      console.error("<FORMPROCESS> Error adding grocery:", error);
     })
   }
 }
@@ -99,19 +98,16 @@ const processFormSubmission = (itemName, categoryId, categoryName, categoryType)
 const handleCustomCategory = (customCategoryName) => {
   return addCategory(customCategoryName)
   .then(categoryObject => {
-    if(categoryObject) {
-      const newCategory = categoryObject.name;
-      const newCategoryId = categoryObject.id;
-      console.log(`Custom category added with ID ${newCategoryId}!`);
-      addCategoryToList(newCategory);
-      addCategoryToSelector(newCategory, newCategoryId);
-      userLog(`Category '${newCategory}' added`, 'success');
-      return newCategoryId;
-    }
+    const newCategory = categoryObject.name;
+    const newCategoryId = categoryObject.id;
+    console.log(`Custom category added with ID ${newCategoryId}!`);
+    addCategoryToList(newCategory);
+    addCategoryToSelector(newCategory, newCategoryId);
+    userLog(`Category '${newCategory}' added`, 'success');
+    return newCategoryId;
   })
   .catch(error => {
     console.error("Error adding custom category:", error);
-    throw error;
   })
 }
 
@@ -122,7 +118,8 @@ const handleGroceryAddition = (itemName, categoryId) => {
     return groceryObject;
   })
   .catch(error => {
-    console.error("Error adding custom category:", error);
+    // console.error("<HANDLER> Error adding grocery:", error);
+    throw error;
   })
 }
 

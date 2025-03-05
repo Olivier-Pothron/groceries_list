@@ -2,6 +2,7 @@ console.log("'groceries.js' loaded.");
 
 // DOM ELEMENTS
 const allGroceriesList = document.getElementById("all-groceries-list");
+const categoriesList = document.getElementById("categories-list");
 const testParagraph = document.getElementById("listTest");
 const updateButton = document.getElementById("update-button");
 const logContainer = document.getElementById("log-container");
@@ -31,24 +32,7 @@ function groceriesDropDown(groceriesList, categoryButton) {
   }
 }
 
-// EVENTS //
 
-allGroceriesList.addEventListener("click", (event) => {
-  const categoryHeader = event.target.closest(".category-header");              // get clicked category list
-  const groceryElement = event.target.closest(".grocery-element");              // get clicked grocery
-
-  // TOGGLING GROCERY TO_BE_BOUGHT STATE
-  if (groceryElement) {
-    toggleToBeBoughtInDB(groceryElement);
-  }
-
-  // TOGGLING DISPLAY OF CATEGORY LIST
-  if (categoryHeader) {
-    const groceriesList = categoryHeader.nextElementSibling;
-    const categoryButton = categoryHeader.querySelector('.category-button');
-    groceriesDropDown(groceriesList, categoryButton);
-  }
-});
 
 /*
 // ON DATABASE LOADED

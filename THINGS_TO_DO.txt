@@ -15,9 +15,10 @@ BROWSER CLIENT ::
 
 SERVER :
 
-- server renders ejs file
-- for now 030325, server relies on client js file to handle
+- <> server renders ejs file
+- <!>for now 030325, server relies on client js file to handle
 custom category.
 maybe add server side verification and handling addition of
 custom category
-
+- <!>look into way to make added element to drop category list
+and maybe flicker or some shit

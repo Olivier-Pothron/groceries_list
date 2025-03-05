@@ -18,7 +18,6 @@ router.get('/', (req, res) => {
 // ADD CATEGORY
 router.post('/', (req, res) => {
   const { newCategoryName } = req.body;
-  console.log(`New category name : ${newCategoryName}`);
 
   // Validate categoryName is not empty
   if (!newCategoryName) {
@@ -28,8 +27,12 @@ router.post('/', (req, res) => {
   const insertQuery = 'INSERT INTO groceries_categories(name) VALUES (?)';
   mysqlPool.query(insertQuery, [newCategoryName], (err, insertResults) => {
     if (err) {
-      console.error('Error executing query:', err);
-      res.status(500).json({ error: 'Database error' });
+      if (err.code === 'ER_DUP_ENTRY') {
+        res.status(409).json( { error: 'Category already exists!'});
+        console.error(err.code, 'Error: Category already exists!', );
+      } else {
+        res.status(500).json({ error: 'Database error' });
+      }
       return;
     }
 

@@ -21,6 +21,18 @@ router.get('/', (req, res) => {
 
 // ADD GROCERY
 router.post('/', (req, res) => {
+
+  //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  // <!> BELOW IS FOR HANDLING WITHOUT JAVASCRIPT <!>
+  // const contentType = req.headers['content-type'];
+  // if (contentType.includes('application/x-www-form-urlencoded')) {
+  //   newGroceryName = req.body.newGroceryName;
+  //   categoryId = req.body.categoryId;
+  // } else {
+  //   ({ newGroceryName, categoryId } = req.body);
+  // }
+  //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
   let { newGroceryName, categoryId } = req.body;
 
   categoryId = categoryId || null;
@@ -34,19 +46,23 @@ router.post('/', (req, res) => {
   mysqlPool.query(insertQuery, [newGroceryName, categoryId], (err, insertResults) => {
     if (err) {
       console.error('Error executing query:', err);
-      res.status(500).json({ error: 'Database error' });
+      if(err.code === 'ER_DUP_ENTRY') {
+        res.status(409).json( { error: 'Grocery already exists in category!'});
+      } else {
+        res.status(500).json({ error: 'Database error' });
+      }
       return;
     }
 
     const newItemId = insertResults.insertId;
-    const categoryQuery = `SELECT g.id, g.name, g.to_be_bought,
+    const responseQuery = `SELECT g.id, g.name, g.to_be_bought,
                           c.name AS category, c.id AS category_id
                           FROM groceries_list AS g
                           LEFT JOIN groceries_categories AS c
                           ON g.category_id = c.id
                           WHERE g.id = LAST_INSERT_ID();
                           `;
-    mysqlPool.query(categoryQuery, (err, queryResults) => {
+    mysqlPool.query(responseQuery, (err, queryResults) => {
       if (err) {
         console.error('Error executing query:', err);
         res.status(500).json({ error: 'Database error' });
