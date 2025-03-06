@@ -100,7 +100,6 @@ const handleCustomCategory = (customCategoryName) => {
   .then(categoryObject => {
     const newCategory = categoryObject.name;
     const newCategoryId = categoryObject.id;
-    console.log(`Custom category added with ID ${newCategoryId}!`);
     addCategoryToList(newCategory);
     addCategoryToSelector(newCategory, newCategoryId);
     userLog(`Category '${newCategory}' added`, 'success');

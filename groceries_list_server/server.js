@@ -3,6 +3,7 @@ const mysqlPool = require('./db');
 const cors = require('cors');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const path = require('path');
 require('dotenv').config();
 
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
@@ -31,6 +32,7 @@ app.use('/api/groceries', groceriesRoutes);
 app.use('/api/sync', syncRoutes);
 
 app.set("view engine", "ejs"); // Set EJS as the templating engine
+
 app.use(express.static('public')); // Serve static files from the 'public' directory
 
 

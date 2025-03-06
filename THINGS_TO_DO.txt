@@ -20,5 +20,6 @@ SERVER :
 custom category.
 maybe add server side verification and handling addition of
 custom category
-- <!>look into way to make added element to drop category list
+- <!>look into ways to make added element to drop category list
 and maybe flicker or some shit
+- set the absolute path using "__dirname"
