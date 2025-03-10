@@ -43,7 +43,7 @@ router.post('/', (req, res) => {
   }
 
   const insertQuery = 'INSERT INTO groceries_list(name, category_id) VALUES (?, ?)';
-  mysqlPool.query(insertQuery, [newGroceryName, categoryId], (err, insertResults) => {
+  mysqlPool.query(insertQuery, [newGroceryName.toLowerCase(), categoryId], (err, insertResults) => {
     if (err) {
       console.error('Error executing query:', err);
       if(err.code === 'ER_DUP_ENTRY') {

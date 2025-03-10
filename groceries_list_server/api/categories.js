@@ -25,7 +25,7 @@ router.post('/', (req, res) => {
   }
 
   const insertQuery = 'INSERT INTO groceries_categories(name) VALUES (?)';
-  mysqlPool.query(insertQuery, [newCategoryName], (err, insertResults) => {
+  mysqlPool.query(insertQuery, [newCategoryName.toLowerCase()], (err, insertResults) => {
     if (err) {
       if (err.code === 'ER_DUP_ENTRY') {
         res.status(409).json( { error: 'Category already exists!'});
@@ -38,12 +38,12 @@ router.post('/', (req, res) => {
 
     const newCategoryId = insertResults.insertId;
     const newCategory = { id: newCategoryId,
-                          name: newCategoryName};
+                          name: newCategoryName.toLowerCase()};
 
     // Formatting the request time to a more readable format
     const formattedRequestTime = new Date(req.requestTime).toLocaleString();
 
-    console.log(`${newCategoryName} inserted into Categories List with `+
+    console.log(`${newCategoryName.toLowerCase()} inserted into Categories List with `+
                 `ID ${newCategoryId} ` +
                 `at ${formattedRequestTime}`);
     res.status(200).json(newCategory);

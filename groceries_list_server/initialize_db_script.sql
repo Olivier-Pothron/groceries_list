@@ -18,9 +18,13 @@ CREATE TABLE groceries_list (
 );
 
 -- Step 1: Insert "No category" row if it doesn't already exist
-INSERT INTO groceries_categories (id, name)
-SELECT -1, 'no category'
-WHERE NOT EXISTS (SELECT 1 FROM groceries_categories WHERE id = -1);
+INSERT IGNORE INTO groceries_categories (id, name)
+VALUES (-1, 'no category');
+
+-- /\ ALTERNATIVE WAY /\ :
+-- INSERT INTO groceries_categories (id, name)
+-- SELECT -1, 'no category'
+-- WHERE NOT EXISTS (SELECT 1 FROM groceries_categories WHERE id = -1);
 
 -- Step 2: Create the trigger to handle NULL category_id
 DELIMITER $$

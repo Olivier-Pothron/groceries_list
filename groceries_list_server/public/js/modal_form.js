@@ -60,6 +60,7 @@ function addCategoryToSelector(newCategory, newCategoryId) {
 function addCategoryToList(categoryName) {
   const newCategory = createCategoryElement(categoryName);
   categoriesList.appendChild(newCategory);
+  return newCategory;
 }
 
 // ADD GROCERY TO CATEGORY LIST
@@ -67,6 +68,12 @@ function addGroceryToCategoryList(groceryObject) {
   const newGrocery = createGroceryElement(groceryObject);
   const categoryQuery = `[data-name="${groceryObject.category}"]`;
   const existingCategory = categoriesList.querySelector(categoryQuery);
+  if(!existingCategory) { // when adding the frist grocery without a category
+    const noCategory = addCategoryToList("no category");
+    const existingCategoryList = noCategory.querySelector("ul");
+    existingCategoryList.appendChild(newGrocery);
+    return;
+  }
   const existingCategoryList = existingCategory.querySelector("ul");
   existingCategoryList.appendChild(newGrocery);
 }
@@ -77,7 +84,7 @@ function addGroceryToCategoryList(groceryObject) {
 const processFormSubmission = (itemName, categoryId, categoryName, categoryType) => {
   if (categoryType === 'custom') {
     handleCustomCategory(categoryName)
-    .then(newCategoryId => handleGroceryAddition(itemName, newCategoryId))
+    .then(newCategoryId => handleGroceryAddition(itemName.toLowerCase(), newCategoryId))
     .then(groceryObject => {
       addGroceryToCategoryList(groceryObject);
     })
@@ -85,7 +92,7 @@ const processFormSubmission = (itemName, categoryId, categoryName, categoryType)
       console.error("Error adding grocery:", error);
     })
   } else {
-    handleGroceryAddition(itemName, categoryId)
+    handleGroceryAddition(itemName.toLowerCase(), categoryId)
     .then(groceryObject => {
       addGroceryToCategoryList(groceryObject);
     })

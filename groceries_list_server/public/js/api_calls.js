@@ -6,7 +6,7 @@ function addCategory (name) {       // ✓
     headers: {
       "Content-type": "application/json"
     },
-    body: JSON.stringify({ newCategoryName: name})
+    body: JSON.stringify({ newCategoryName: name.toLowerCase() })
   })
   .then(response => {
     if(!response.ok) {
