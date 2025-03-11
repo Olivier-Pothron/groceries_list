@@ -45,6 +45,18 @@ function addGrocery (name, categoryId) {  // ✓
   });
 }
 
+function deleteGrocery (groceryId) {
+  return fetch(`http://localhost:3000/api/groceries/${groceryId}`, {
+    method: "DELETE"
+  })
+  .then(response => {
+    console.log(response);
+  })
+  .catch(error => {
+    console.log("ERRRRROOOOOOOOR", error.message);
+  })
+}
+
 function toggleToBeBoughtInDB(element) {  // ✓
   const groceryName = element.dataset.name;
   const groceryId = element.dataset.id;

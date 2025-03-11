@@ -18,35 +18,26 @@
       </header>
       <div id="all-groceries-list">
         <ul id="categories-list">
-          <%
-          const categoriesMap = groceries.reduce( (acc, grocery) => {
-            const categoryKey = grocery.category;
-            if(!acc[categoryKey]) {
-              acc[categoryKey] = [];
-            }
-            acc[categoryKey].push(grocery);
-
-            return acc;
-          }, {});
-          %>
-
-          <% for( let category in categoriesMap ) { %>
+          <% for( let category in groceries ) { %>
             <li class = "category-element" data-name="<%= category %>">
               <div class="category-header">
                 <h3 class="category-title"><%= category %></h3>
                 <div class="category-button">⌵</div>
               </div>
               <ul class="groceries-list">
-                <% categoriesMap[category].forEach (grocery => { %>
+                <% groceries[category].forEach (grocery => { %>
                   <li class="grocery-element
                     <%= grocery.to_be_bought ? 'to-be-bought' : '' %>
                     "
                     data-id="<%= grocery.id %>"
                     data-name="<%= grocery.name %>"
                     data-category="<%= grocery.category %>"
-                    data-to-be-bought="<%= grocery.to_be_bought %>"
-                  >
+                    data-to-be-bought="<%= grocery.to_be_bought %>" >
                     <%= grocery.name %>
+                    <button class="delete-button"
+                            data-id="<%= grocery.id %>">
+                      &lt;X&gt;
+                    </button>
                   </li>
                 <% }) %>
               </ul>
@@ -86,17 +77,9 @@
               <div>
                 <select id="category-selector">
                   <option value="" disabled selected>Select category</option>
-                  <% const categoriesIdMap = groceries.reduce( (acc, grocery) => {
-                    const categoryName = grocery.category;
-                    const categoryId = grocery.category_id;
-                    if(!acc[categoryName]) {
-                      acc[categoryName] = categoryId;
-                    }
-                    return acc;
-                  }, {} ); %>
-                  <% for( let category in categoriesIdMap ) { %>
+                  <% for( let category in categories ) { %>
                     <option value="<%= category %>"
-                          data-id="<%= categoriesIdMap[category] %>"
+                          data-id="<%= categories[category] %>"
                     >
                       <%= category %>
                     </option>

@@ -70,9 +70,9 @@ app.get('/groceries', (req, res) => {
               g_list.name AS name,
               g_list.to_be_bought,
               g_cat.name AS category,
-              g_list.category_id AS category_id
+              g_cat.id AS category_id
       FROM    groceries_list AS g_list
-      LEFT JOIN    groceries_categories AS g_cat
+      RIGHT JOIN    groceries_categories AS g_cat
       ON      g_list.category_id = g_cat.id;
       `;
 
@@ -81,7 +81,32 @@ app.get('/groceries', (req, res) => {
       console.error('Error executing query:', err);
       return next(err);
     }
-    res.render('groceries', { groceries: results });
+
+    // /!\ MAYBE PUT TWO MAPS IN A SINGLE LOOP ITERATING OVER RESULTS ? /!\
+
+    // Maps existing groceries by categories
+    const groceriesByCategory = results.reduce( (acc, grocery) => {
+      const categoryKey = grocery.category;
+      if(grocery.name) {
+        if(!acc[categoryKey]) {
+          acc[categoryKey] = [];
+        }
+        acc[categoryKey].push(grocery);
+      }
+      return acc;
+    }, {});
+
+    // Maps all categories to their respective ID
+    const categoriesIdMap = results.reduce( (acc, grocery) => {
+      const categoryName = grocery.category;
+      const categoryId = grocery.category_id;
+      if(!acc[categoryName]) {
+        acc[categoryName] = categoryId;
+      }
+      return acc;
+    }, {});
+
+    res.render('groceries', { groceries: groceriesByCategory, categories: categoriesIdMap });
     console.log("Loaded groceries page.");
   });
 });
