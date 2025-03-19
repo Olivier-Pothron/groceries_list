@@ -1,5 +1,40 @@
 console.log("'ui_updates.js' loaded.");
 
+// ADD CATEGORY TO SELECTOR
+function addCategoryToSelector(newCategory, newCategoryId) {
+  console.log(`=> addCategoryToSelector : ${newCategory} id : ${newCategoryId}`);
+
+  newSelectorOption = document.createElement("option");
+  newSelectorOption.setAttribute('data-id', newCategoryId);
+  newSelectorOption.textContent = newCategory;
+  newSelectorOption.value = newCategory;
+
+  categorySelector.add(newSelectorOption, categorySelector.options.length - 1);
+}
+
+// ADD CATEGORY TO MASTER LIST
+function addCategoryToList(categoryName) {
+  const newCategory = createCategoryElement(categoryName);
+  categoriesList.appendChild(newCategory);
+  return newCategory;
+}
+
+// ADD GROCERY TO CATEGORY LIST
+function addGroceryToCategoryList(groceryObject) {
+  const newGrocery = createGroceryElement(groceryObject);
+  const categoryQuery = `[data-name="${groceryObject.category}"]`;
+  const existingCategory = categoriesList.querySelector(categoryQuery);
+  if(!existingCategory) { // when adding the first grocery without a category
+    const noCategory = addCategoryToList("no category");
+    const existingCategoryList = noCategory.querySelector("ul");
+    existingCategoryList.appendChild(newGrocery);
+    return;
+  }
+  const existingCategoryList = existingCategory.querySelector("ul");
+  existingCategoryList.appendChild(newGrocery);
+}
+
+// CREATE ELEMENTS \\
 function createCategoryElement(categoryName) {
   const categoryElement = document.createElement("li");
   categoryElement.classList.add("category-element");
@@ -32,6 +67,26 @@ function createCategoryElement(categoryName) {
 function createGroceryElement(grocery) {
   const groceryElement = document.createElement("li");
   groceryElement.classList.add("grocery-element");
+  groceryElement.setAttribute('data-id', grocery.id);
+  groceryElement.setAttribute('data-name', grocery.name);
+  groceryElement.setAttribute('data-category', grocery.category);
+  groceryElement.setAttribute('data-to-be-bought', grocery.to_be_bought);
+  groceryElement.textContent = grocery.name;
+
+  const deleteButton = document.createElement("button");
+  deleteButton.classList.add("delete-button");
+  // deleteButton.setAttribute('data-id', grocery.id);
+  deleteButton.textContent = "<X>";
+
+  groceryElement.appendChild(deleteButton);
+
+  return groceryElement;
+}
+
+// OLD STUFF ::
+/* function createGroceryElement(grocery) {
+  const groceryElement = document.createElement("li");
+  groceryElement.classList.add("grocery-element");
 
   groceryElement.setAttribute('data-id', grocery.id);
   groceryElement.setAttribute('data-name', grocery.name);
@@ -51,3 +106,4 @@ function createGroceryElement(grocery) {
 
   return groceryElement;
 }
+*/

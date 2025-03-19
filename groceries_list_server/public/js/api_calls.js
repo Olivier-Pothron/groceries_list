@@ -50,10 +50,15 @@ function deleteGrocery (groceryId) {
     method: "DELETE"
   })
   .then(response => {
-    console.log(response);
+    if(!response.ok) {
+      return response.json().then( err => {
+        throw new Error(err.error || `HTTP error! Status: ${response.status}`);
+      })
+    }
+    return response;
   })
   .catch(error => {
-    console.log("ERRRRROOOOOOOOR", error.message);
+    console.log("Error deleting grocery:", error.message);
   })
 }
 
@@ -79,5 +84,5 @@ function toggleToBeBoughtInDB(element) {  // ✓
       console.error("Error updating to_be_bought value!");
     }
   })
-  .catch(error => console.error("Error updating grocerie:", error));
+  .catch(error => console.error("Error updating grocery:", error));
 }

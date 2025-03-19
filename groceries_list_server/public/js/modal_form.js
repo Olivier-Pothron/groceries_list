@@ -11,7 +11,6 @@ const formSubmitButton = document.getElementById("val-btn");
 const validationFeedback = document.getElementById("validation-feedback");
 
 // MODAL FORM FUNCTIONS
-
 addNewItemForm.addEventListener("submit", (event) => {
 
   event.preventDefault();
@@ -44,40 +43,6 @@ addNewItemForm.addEventListener("submit", (event) => {
   window.location.hash = ''; //close the modal
 });
 
-// ADD CATEGORY TO SELECTOR
-function addCategoryToSelector(newCategory, newCategoryId) {
-  console.log(`=> addCategoryToSelector : ${newCategory} id : ${newCategoryId}`);
-
-  newSelectorOption = document.createElement("option");
-  newSelectorOption.setAttribute('data-id', newCategoryId);
-  newSelectorOption.textContent = newCategory;
-  newSelectorOption.value = newCategory;
-
-  categorySelector.add(newSelectorOption, categorySelector.options.length - 1);
-}
-
-// ADD CATEGORY TO MASTER LIST
-function addCategoryToList(categoryName) {
-  const newCategory = createCategoryElement(categoryName);
-  categoriesList.appendChild(newCategory);
-  return newCategory;
-}
-
-// ADD GROCERY TO CATEGORY LIST
-function addGroceryToCategoryList(groceryObject) {
-  const newGrocery = createGroceryElement(groceryObject);
-  const categoryQuery = `[data-name="${groceryObject.category}"]`;
-  const existingCategory = categoriesList.querySelector(categoryQuery);
-  if(!existingCategory) { // when adding the frist grocery without a category
-    const noCategory = addCategoryToList("no category");
-    const existingCategoryList = noCategory.querySelector("ul");
-    existingCategoryList.appendChild(newGrocery);
-    return;
-  }
-  const existingCategoryList = existingCategory.querySelector("ul");
-  existingCategoryList.appendChild(newGrocery);
-}
-
 // LOGIC HELPERS & HANDLERS
 
 //Process Form Submission helper
@@ -100,33 +65,6 @@ const processFormSubmission = (itemName, categoryId, categoryName, categoryType)
       console.error("<FORMPROCESS> Error adding grocery:", error);
     })
   }
-}
-
-const handleCustomCategory = (customCategoryName) => {
-  return addCategory(customCategoryName)
-  .then(categoryObject => {
-    const newCategory = categoryObject.name;
-    const newCategoryId = categoryObject.id;
-    addCategoryToList(newCategory);
-    addCategoryToSelector(newCategory, newCategoryId);
-    userLog(`Category '${newCategory}' added`, 'success');
-    return newCategoryId;
-  })
-  .catch(error => {
-    console.error("Error adding custom category:", error);
-  })
-}
-
-const handleGroceryAddition = (itemName, categoryId) => {
-  return addGrocery(itemName, categoryId)
-  .then(groceryObject => {
-    userLog(`'${groceryObject.name}' added to '${groceryObject.category}'`, 'success');
-    return groceryObject;
-  })
-  .catch(error => {
-    // console.error("<HANDLER> Error adding grocery:", error);
-    throw error;
-  })
 }
 
 //Resets form fields and icons on modal display change

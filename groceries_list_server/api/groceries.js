@@ -100,7 +100,6 @@ router.post("/", (req, res) => {
 
 // DELETE GROCERY
 router.delete("/:id", (req, res) => {
-  console.log("Sent a delete request");
   const id = req.params.id;
   let itemName = "";
 
@@ -119,7 +118,7 @@ router.delete("/:id", (req, res) => {
     const deleteQuery = "DELETE FROM groceries_list WHERE id = ?";
     mysqlPool.query(deleteQuery, [id], (err, results) => {
       if (err) {
-        console.error("Error executing query:", err);
+        console.error("Error delete row:", err);
         res.status(500).json({ error: "Database error" });
         return;
       }

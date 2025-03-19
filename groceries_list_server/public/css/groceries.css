@@ -150,6 +150,14 @@ footer {
   transition: all 0.3s ease;
 }
 
+.grocery-element.fade-out {
+  overflow: hidden;
+  height: 0;
+  opacity: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
 .to-be-bought {
   background-color: var(--select-color);
   color: white;

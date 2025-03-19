@@ -16,7 +16,7 @@
           <a href="#modal-1" class="btn" id="show-btn">ADD GROCERY</a>
         </div>
       </header>
-      <div id="all-groceries-list">
+      <main id="all-groceries-list">
         <ul id="categories-list">
           <% for( let category in groceries ) { %>
             <li class = "category-element" data-name="<%= category %>">
@@ -34,17 +34,15 @@
                     data-category="<%= grocery.category %>"
                     data-to-be-bought="<%= grocery.to_be_bought %>" >
                     <%= grocery.name %>
-                    <button class="delete-button"
-                            data-id="<%= grocery.id %>">
-                      &lt;X&gt;
-                    </button>
+
+                    <button class="delete-button">&lt;X&gt;</button>
                   </li>
                 <% }) %>
               </ul>
             </li>
           <% } %>
         </ul>
-      </div>
+      </main>
 
       <button id="update-button">UPDATE LIST</button>
       <button id="test-button">TEST</button>
@@ -110,5 +108,6 @@
     <script src="js/api_calls.js"></script>
     <script src="js/ui_updates.js"></script>
     <script src="js/events.js"></script>
+    <script src="js/handlers.js"></script>
   </body>
 </html>
