@@ -12,7 +12,7 @@ const mysqlPool = mysql.createPool({
   host: '127.0.0.1',
   user: MYSQL_USER,
   password: MYSQL_PASSWORD,
-  database: 'groceries'
+  database: 'groceries_list'
 });
 
 module.exports = mysqlPool; // Export the pool so other files can use it
