@@ -72,7 +72,7 @@ app.get('/groceries', (req, res) => {
               g_cat.name AS category,
               g_cat.id AS category_id
       FROM    groceries AS g_list
-      RIGHT JOIN    groceries AS g_cat
+      RIGHT JOIN    categories AS g_cat
       ON      g_list.category_id = g_cat.id;
       `;
 

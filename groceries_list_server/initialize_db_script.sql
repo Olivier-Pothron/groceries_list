@@ -1,9 +1,9 @@
 -- Drop existing tables
 DROP TABLE IF EXISTS groceries;
-DROP TABLE IF EXISTS groceries;
+DROP TABLE IF EXISTS categories;
 
 -- Create tables again
-CREATE TABLE groceries (
+CREATE TABLE categories (
 	id INT AUTO_INCREMENT PRIMARY KEY,
 	name VARCHAR(255) UNIQUE NOT NULL
 );
@@ -13,12 +13,12 @@ CREATE TABLE groceries (
 	name VARCHAR(255) NOT NULL,
 	to_be_bought INT DEFAULT 0,
 	category_id INT,
-	FOREIGN KEY (category_id) REFERENCES groceries(id),
+	FOREIGN KEY (category_id) REFERENCES categories(id),
 	UNIQUE (name, category_id)
 );
 
 -- Step 1: Insert "No category" row if it doesn't already exist
-INSERT IGNORE INTO groceries (id, name)
+INSERT IGNORE INTO categories (id, name)
 VALUES (-1, 'no category');
 
 -- /\ ALTERNATIVE WAY /\ :

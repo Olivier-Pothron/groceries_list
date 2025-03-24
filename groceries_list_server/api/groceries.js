@@ -8,7 +8,7 @@ const mysqlPool = require("../db");
 router.get("/", (req, res) => {
   const query = ` SELECT g.id, g.name, g.to_be_bought, c.name AS category
                   FROM groceries AS g
-                  LEFT JOIN groceries AS c
+                  LEFT JOIN categories AS c
                   ON g.category_id = c.id`;
   mysqlPool.query(query, (err, results, fields) => {
     if (err) {
@@ -63,7 +63,7 @@ router.post("/", (req, res) => {
       const responseQuery = `SELECT g.id, g.name, g.to_be_bought,
                           c.name AS category, c.id AS category_id
                           FROM groceries AS g
-                          LEFT JOIN groceries AS c
+                          LEFT JOIN categories AS c
                           ON g.category_id = c.id
                           WHERE g.id = LAST_INSERT_ID();
                           `;
