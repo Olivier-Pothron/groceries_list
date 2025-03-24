@@ -130,7 +130,7 @@ footer {
   gap: 5px;
   overflow: hidden;
   max-height: 0;
-  transition: all 0.3s linear;
+  transition: all 1s linear;
 }
 
 .groceries-list.visible {
@@ -147,7 +147,7 @@ footer {
   display: flex;
   opacity: 1;
   justify-content: space-between;
-  transition: all 0.3s ease;
+  transition: all 1s linear;
 }
 
 .grocery-element.fade-out {

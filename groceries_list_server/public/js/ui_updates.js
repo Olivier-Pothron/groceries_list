@@ -19,19 +19,36 @@ function addCategoryToList(categoryName) {
   return newCategory;
 }
 
-// ADD GROCERY TO CATEGORY LIST
-function addGroceryToCategoryList(groceryObject) {
+// ADD GROCERY TO GROCERIES LIST
+function addGroceryToGroceriesList(groceryObject) {
   const newGrocery = createGroceryElement(groceryObject);
   const categoryQuery = `[data-name="${groceryObject.category}"]`;
-  const existingCategory = categoriesList.querySelector(categoryQuery);
-  if(!existingCategory) { // when adding the first grocery without a category
-    const noCategory = addCategoryToList("no category");
-    const existingCategoryList = noCategory.querySelector("ul");
-    existingCategoryList.appendChild(newGrocery);
-    return;
+  let category = categoriesList.querySelector(categoryQuery);
+  console.log(category);
+
+  if(!category) { // if category not in the UI
+
+    console.log("something");
+    const categoryExists = categorySelector.querySelector(`option[value="${groceryObject.category}"]`);
+
+    if(categoryExists) {
+      category = addCategoryToList(categoryExists.value);
+    } else {
+      // when adding the first grocery without a category
+      category = addCategoryToList("no category");
+    }
   }
-  const existingCategoryList = existingCategory.querySelector("ul");
-  existingCategoryList.appendChild(newGrocery);
+
+  const groceriesList = category.querySelector("ul");
+  groceriesList.appendChild(newGrocery);
+
+  // ensures a list drops down on addition of new grocery
+  if (!groceriesList.classList.contains("visible")) {
+    groceriesList.classList.add("visible");
+    categoryButton = category.querySelector(".category-button");
+    categoryButton.textContent = collapseSign;
+  }
+  groceriesList.style.maxHeight = groceriesList.scrollHeight + "px";
 }
 
 // CREATE ELEMENTS \\
@@ -75,7 +92,6 @@ function createGroceryElement(grocery) {
 
   const deleteButton = document.createElement("button");
   deleteButton.classList.add("delete-button");
-  // deleteButton.setAttribute('data-id', grocery.id);
   deleteButton.textContent = "<X>";
 
   groceryElement.appendChild(deleteButton);
@@ -107,3 +123,11 @@ function createGroceryElement(grocery) {
   return groceryElement;
 }
 */
+
+
+WHAT I NEED FOR A SMOOTH ADDItiON/DELETION OF GROCERY:
+ > ADDITION :
+      - adding class "visible" to groceriesList if not present
+      - if class "visible" present, expand list gradually
+      - THEN add invisible grocery element
+      - add class "visible" to grocery element (or animation ?)

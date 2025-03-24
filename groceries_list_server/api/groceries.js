@@ -7,8 +7,8 @@ const mysqlPool = require("../db");
 // GET GROCERIES
 router.get("/", (req, res) => {
   const query = ` SELECT g.id, g.name, g.to_be_bought, c.name AS category
-                  FROM groceries_list AS g
-                  LEFT JOIN groceries_categories AS c
+                  FROM groceries AS g
+                  LEFT JOIN groceries AS c
                   ON g.category_id = c.id`;
   mysqlPool.query(query, (err, results, fields) => {
     if (err) {
@@ -42,7 +42,7 @@ router.post("/", (req, res) => {
   }
 
   const insertQuery =
-    "INSERT INTO groceries_list(name, category_id) VALUES (?, ?)";
+    "INSERT INTO groceries(name, category_id) VALUES (?, ?)";
   mysqlPool.query(
     insertQuery,
     [newGroceryName.toLowerCase(), categoryId],
@@ -62,8 +62,8 @@ router.post("/", (req, res) => {
       const newItemId = insertResults.insertId;
       const responseQuery = `SELECT g.id, g.name, g.to_be_bought,
                           c.name AS category, c.id AS category_id
-                          FROM groceries_list AS g
-                          LEFT JOIN groceries_categories AS c
+                          FROM groceries AS g
+                          LEFT JOIN groceries AS c
                           ON g.category_id = c.id
                           WHERE g.id = LAST_INSERT_ID();
                           `;
@@ -103,7 +103,7 @@ router.delete("/:id", (req, res) => {
   const id = req.params.id;
   let itemName = "";
 
-  const nameQuery = "SELECT name FROM groceries_list WHERE id = ?";
+  const nameQuery = "SELECT name FROM groceries WHERE id = ?";
   mysqlPool.query(nameQuery, [id], (err, results) => {
     if (err) {
       console.error("Error executing query:", err);
@@ -115,10 +115,10 @@ router.delete("/:id", (req, res) => {
     // Formatting the request time to a more readable format
     const formattedRequestTime = new Date(req.requestTime).toLocaleString();
 
-    const deleteQuery = "DELETE FROM groceries_list WHERE id = ?";
+    const deleteQuery = "DELETE FROM groceries WHERE id = ?";
     mysqlPool.query(deleteQuery, [id], (err, results) => {
       if (err) {
-        console.error("Error delete row:", err);
+        console.error("Error deleting row:", err);
         res.status(500).json({ error: "Database error" });
         return;
       }
@@ -137,7 +137,7 @@ router.put("/:id", (req, res) => {
   const { toBeBought } = req.body;
 
   // Check if id exists in the database
-  const idQuery = "SELECT id FROM groceries_list WHERE id = ?";
+  const idQuery = "SELECT id FROM groceries WHERE id = ?";
   mysqlPool.query(idQuery, [id], (err, results) => {
     if (err) {
       console.error("Error executing query:", err);
@@ -151,7 +151,7 @@ router.put("/:id", (req, res) => {
 
     // Update the to_be_bought value
     const updateQuery =
-      "UPDATE groceries_list SET to_be_bought = ? WHERE id = ?";
+      "UPDATE groceries SET to_be_bought = ? WHERE id = ?";
     mysqlPool.query(updateQuery, [toBeBought, id], (err, results) => {
       if (err) {
         console.error("Error executing query:", err);

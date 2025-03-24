@@ -1,4 +1,4 @@
-const groceriesList = document.getElementById("groceries_list");
+const groceriesList = document.getElementById("groceries");
 const addItemForm = document.getElementById("add_item_form");
 const newItemName = document.getElementById("new_item_name");
 const categorySelector = document.getElementById("category_selector");

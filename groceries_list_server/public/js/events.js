@@ -9,18 +9,6 @@ allGroceriesList.addEventListener("click", (event) => {
   // DELETE GROCERY
   const deleteButton = event.target.closest(".delete-button");
 
-  // if(deleteButton) {
-    //   groceryId = groceryElement.dataset.id;
-    //   groceryName = groceryElement.dataset.name;
-    //   deleteGrocery(groceryId);
-    //   groceryElement.classList.add('fade-out');
-    //   setTimeout(() => {
-      //     groceryElement.remove();
-      //   }, 300);
-      //   userLog(`'${groceryName}' deleted from database`, 'success');
-      //   return;
-      // }
-
   if(deleteButton) {
     event.stopPropagation();
     const groceryElement = deleteButton.parentElement;
@@ -45,10 +33,17 @@ allGroceriesList.addEventListener("click", (event) => {
 });
 
 // TEST BUTTON
+// testButt.addEventListener("click", () => {
+//   const groceryArray = ["nono", "bobo", "coco", "lolo", "momo", "popo", "roro", "toto", "koko", "soso"];
+//   const randomItem = groceryArray[Math.floor(Math.random() * 10) + 1];
+//   const randomCat = Math.floor(Math.random() * 10) + 1;
+//   console.log(`Grocery: ${randomItem} / Cat_id: ${randomCat}`);
+//   addGrocery (randomItem, randomCat);
+// });
 testButt.addEventListener("click", () => {
   const groceryArray = ["nono", "bobo", "coco", "lolo", "momo", "popo", "roro", "toto", "koko", "soso"];
-  const randomItem = groceryArray[Math.floor(Math.random() * 10) + 1];
-  const randomCat = Math.floor(Math.random() * 10) + 1;
+  const randomItem = groceryArray[Math.floor(Math.random() * 10)];
+  const randomCat = Math.floor(Math.random() * 10);
   console.log(`Grocery: ${randomItem} / Cat_id: ${randomCat}`);
-  addGrocery (randomItem, randomCat);
+  handleGroceryAddition (randomItem, 3);
 });

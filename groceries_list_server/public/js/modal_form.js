@@ -51,7 +51,7 @@ const processFormSubmission = (itemName, categoryId, categoryName, categoryType)
     handleCustomCategory(categoryName)
     .then(newCategoryId => handleGroceryAddition(itemName.toLowerCase(), newCategoryId))
     .then(groceryObject => {
-      addGroceryToCategoryList(groceryObject);
+      addGroceryToGroceriesList(groceryObject);
     })
     .catch(error => {
       console.error("Error adding grocery:", error);
@@ -59,7 +59,7 @@ const processFormSubmission = (itemName, categoryId, categoryName, categoryType)
   } else {
     handleGroceryAddition(itemName.toLowerCase(), categoryId)
     .then(groceryObject => {
-      addGroceryToCategoryList(groceryObject);
+      addGroceryToGroceriesList(groceryObject);
     })
     .catch(error => {
       console.error("<FORMPROCESS> Error adding grocery:", error);

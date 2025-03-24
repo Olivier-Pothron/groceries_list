@@ -32,11 +32,11 @@ function deleteGroceryElement(groceryElement) {
   const groceryName = groceryElement.dataset.name;
   return deleteGrocery(groceryId)
   .then(response => {
-    console.log("Status: ", response.status);
+    // console.log("Status: ", response.status);
     groceryElement.classList.add('fade-out');
     setTimeout(() => {
       groceryElement.remove();
-    }, 300);
+    }, 1000);
     userLog(`'${groceryName}' deleted from database`, 'success');
   })
   .catch(error => {

@@ -6,7 +6,7 @@ const mysqlPool = require('../db');
 
 // GET CATEGORIES
 router.get('/', (req, res) => {
-  mysqlPool.query('SELECT * FROM groceries_categories', (err, results, fields) => {
+  mysqlPool.query('SELECT * FROM groceries', (err, results, fields) => {
     if (err) {
       console.error('Error executing query:', err);
       return next(err);
@@ -24,7 +24,7 @@ router.post('/', (req, res) => {
     return res.status(400).json({ error: 'Category name is required' });
   }
 
-  const insertQuery = 'INSERT INTO groceries_categories(name) VALUES (?)';
+  const insertQuery = 'INSERT INTO groceries(name) VALUES (?)';
   mysqlPool.query(insertQuery, [newCategoryName.toLowerCase()], (err, insertResults) => {
     if (err) {
       if (err.code === 'ER_DUP_ENTRY') {
@@ -55,7 +55,7 @@ router.delete('/:id', (req, res) => {
   const id = req.params.id;
   let categoryName = "";
 
-  const nameQuery = 'SELECT item_name FROM groceries_categories WHERE id = ?';
+  const nameQuery = 'SELECT item_name FROM groceries WHERE id = ?';
   mysqlPool.query(nameQuery, [id], (err, results) => {
     if (err) {
       console.error('Error executing query:', err);
@@ -68,7 +68,7 @@ router.delete('/:id', (req, res) => {
   // Formatting the request time to a more readable format
   const formattedRequestTime = new Date(req.requestTime).toLocaleString();
 
-  const deleteQuery = 'DELETE FROM groceries_categories WHERE id = ?';
+  const deleteQuery = 'DELETE FROM groceries WHERE id = ?';
   mysqlPool.query(deleteQuery, [id], (err, results) => {
     if (err) {
       console.error('Error executing query:', err);

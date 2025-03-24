@@ -10,7 +10,7 @@ router.post('/syncup/categories', (req, res) => {
 
   const values = categories.map( category => [category.name] );
 
-  const query = 'INSERT IGNORE INTO groceries_categories(name) VALUES ?;';
+  const query = 'INSERT IGNORE INTO groceries(name) VALUES ?;';
 
   mysqlPool.query( query, [values], (err, results) => {
     if (err) {
@@ -35,7 +35,7 @@ router.post('/syncup/groceries', (req, res) => {
       g.toBeBought
     ]);
 
-    const query = `INSERT INTO groceries_list (name, category_id, to_be_bought)
+    const query = `INSERT INTO groceries (name, category_id, to_be_bought)
                   VALUES ?
                   ON DUPLICATE KEY UPDATE
                   to_be_bought = VALUES(to_be_bought)
@@ -55,7 +55,7 @@ router.post('/syncup/groceries', (req, res) => {
 
 // FUNCTIONS
 const getCategoryMap = (callback) => {
-  const query = 'SELECT id, name FROM groceries_categories';
+  const query = 'SELECT id, name FROM groceries';
 
   mysqlPool.query( query, (err, results) => {
     if (err) {

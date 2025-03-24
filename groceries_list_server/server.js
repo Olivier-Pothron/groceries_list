@@ -71,8 +71,8 @@ app.get('/groceries', (req, res) => {
               g_list.to_be_bought,
               g_cat.name AS category,
               g_cat.id AS category_id
-      FROM    groceries_list AS g_list
-      RIGHT JOIN    groceries_categories AS g_cat
+      FROM    groceries AS g_list
+      RIGHT JOIN    groceries AS g_cat
       ON      g_list.category_id = g_cat.id;
       `;
 
@@ -112,7 +112,7 @@ app.get('/groceries', (req, res) => {
 });
 
 app.get('/myList', (req, res) => {
-  mysqlPool.query('SELECT * FROM groceries_list WHERE to_be_bought = 1', (err, results, fields) => {
+  mysqlPool.query('SELECT * FROM groceries WHERE to_be_bought = 1', (err, results, fields) => {
     if (err) {
       console.error('Error executing query:', err);
       return next(err);
