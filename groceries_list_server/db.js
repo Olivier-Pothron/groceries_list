@@ -9,7 +9,7 @@ const MYSQL_PASSWORD = process.env.MYSQL_PASSWORD;
 // SQL Connection
 const mysqlPool = mysql.createPool({
   connectionLimit: 10,
-  host: 'localhost',
+  host: '127.0.0.1',
   user: MYSQL_USER,
   password: MYSQL_PASSWORD,
   database: 'groceries'
