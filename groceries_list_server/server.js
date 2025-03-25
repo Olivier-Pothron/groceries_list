@@ -67,6 +67,10 @@ app.get('/', (req, res) => {
   res.send('This is the groceries server.');
 });
 
+app.get('/test', (req, res) => {
+  res.send('TEST OK');
+});
+
 app.get('/admin', (req, res) => {
   const password = req.query.password;
 
