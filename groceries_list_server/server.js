@@ -4,7 +4,8 @@ const cors = require('cors');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const path = require('path');
-require('dotenv').config();
+// require('dotenv').config({ path: require('path').join(__dirname, '.env') });
+require('dotenv').config(path.join(__dirname, '.env'));
 
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
 
@@ -14,17 +15,20 @@ const syncRoutes = require('./api/sync');
 
 const app = express();
 
+// Set the correct views directory
+app.set('views', path.join(__dirname, 'views'));
+
+// Set the template engine (if using EJS, Pug, etc.) /|\NOT REALLY NECESSARY /|\
+app.set('view engine', 'ejs'); // or 'pug', 'hbs', etc.
+
+// Serve static files correctly
+app.use(express.static(path.join(__dirname, 'public')));
+
+// /?\ '__dirname' is a special variable representing the absolute path of
+// the current directory where my script is located. /?\
+
 // Enable CORS for all routes
-
 app.use(cors());
-
-// app.options('*', cors());  // Allow all OPTIONS requests
-
-// app.use(cors({
-//   origin: 'http://bozisalive.ddns.net:3333',  // Allow front-end from port 3333
-//   methods: ['GET', 'POST', 'PUT', 'DELETE'],
-//   allowedHeaders: ['Content-Type', 'Authorization']
-// }));
 
 // Parses req automatically
 app.use(express.json());
@@ -42,7 +46,7 @@ app.use('/api/sync', syncRoutes);
 
 app.set("view engine", "ejs"); // Set EJS as the templating engine
 
-app.use(express.static('public')); // Serve static files from the 'public' directory
+// app.use(express.static('public')); // Serve static files from the 'public' directory
 
 
 // ** Middleware to authenticate JWT **

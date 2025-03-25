@@ -24,11 +24,8 @@ function addGroceryToGroceriesList(groceryObject) {
   const newGrocery = createGroceryElement(groceryObject);
   const categoryQuery = `[data-name="${groceryObject.category}"]`;
   let category = categoriesList.querySelector(categoryQuery);
-  console.log(category);
 
   if(!category) { // if category not in the UI
-
-    console.log("something");
     const categoryExists = categorySelector.querySelector(`option[value="${groceryObject.category}"]`);
 
     if(categoryExists) {

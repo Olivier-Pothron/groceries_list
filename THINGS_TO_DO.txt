@@ -22,4 +22,6 @@ maybe add server side verification and handling addition of
 custom category
 - <!>look into ways to make added element to drop category list
 and maybe flicker or some shit
-- set the absolute path using "__dirname"
+- maybe set a simpler message for duplicate entry (or errors in general)
+in the server console
+- fucking clean up all commented out code that's useless
