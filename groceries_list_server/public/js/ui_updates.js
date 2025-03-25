@@ -125,9 +125,9 @@ function createGroceryElement(grocery) {
 */
 
 
-WHAT I NEED FOR A SMOOTH ADDItiON/DELETION OF GROCERY:
- > ADDITION :
-      - adding class "visible" to groceriesList if not present
-      - if class "visible" present, expand list gradually
-      - THEN add invisible grocery element
-      - add class "visible" to grocery element (or animation ?)
+// WHAT I NEED FOR A SMOOTH ADDItiON/DELETION OF GROCERY:
+//  > ADDITION :
+//       - adding class "visible" to groceriesList if not present
+//       - if class "visible" present, expand list gradually
+//       - THEN add invisible grocery element
+//       - add class "visible" to grocery element (or animation ?)

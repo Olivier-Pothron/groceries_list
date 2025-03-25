@@ -15,7 +15,16 @@ const syncRoutes = require('./api/sync');
 const app = express();
 
 // Enable CORS for all routes
+
 app.use(cors());
+
+// app.options('*', cors());  // Allow all OPTIONS requests
+
+// app.use(cors({
+//   origin: 'http://bozisalive.ddns.net:3333',  // Allow front-end from port 3333
+//   methods: ['GET', 'POST', 'PUT', 'DELETE'],
+//   allowedHeaders: ['Content-Type', 'Authorization']
+// }));
 
 // Parses req automatically
 app.use(express.json());

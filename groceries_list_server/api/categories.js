@@ -50,12 +50,12 @@ router.post('/', (req, res) => {
   });
 });
 
-// DELETE CATEGORY
+// DELETE CATEGORY          /!\ DOESN'T SEEM TO WORK IN POSTMAN /!\
 router.delete('/:id', (req, res) => {
   const id = req.params.id;
   let categoryName = "";
 
-  const nameQuery = 'SELECT item_name FROM categories WHERE id = ?';
+  const nameQuery = 'SELECT name FROM categories WHERE id = ?';
   mysqlPool.query(nameQuery, [id], (err, results) => {
     if (err) {
       console.error('Error executing query:', err);
