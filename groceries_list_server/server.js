@@ -82,7 +82,7 @@ app.get('/admin', (req, res) => {
   }
 });
 
-app.get('/groceries', (req, res) => {
+app.get('/groceries', (req, res, next) => {
   let query = `
       SELECT  g_list.id,
               g_list.name AS name,
@@ -96,7 +96,10 @@ app.get('/groceries', (req, res) => {
 
   mysqlPool.query(query, (err, results) => {
     if (err) {
-      console.error('Error executing query:', err);
+      console.error('Error executing query:', err.code);
+      if(err.code == "ER_ACCESS_DENIED_ERROR") {
+        return res.status(500).send("Cannot access database");
+      }
       return next(err);
     }
 
@@ -141,7 +144,7 @@ app.get('/myList', (req, res) => {
 
 // Error handling middleware
 app.use((err, req, res, next) => {
-  console.error('Error:', err);
+  console.error('Error: ', err.sqlMessage);
   res.status(500).send('Internal Server Error');
 });
 

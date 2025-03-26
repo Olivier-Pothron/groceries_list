@@ -1,11 +1,11 @@
-console.log("Groceries API loaded successfully");
+console.log("Groceries API loaded");
 
 const express = require("express");
 const router = express.Router();
 const mysqlPool = require("../db");
 
 // GET GROCERIES
-router.get("/", (req, res) => {
+router.get("/", (req, res, next) => {
   const query = ` SELECT g.id, g.name, g.to_be_bought, c.name AS category
                   FROM groceries AS g
                   LEFT JOIN categories AS c

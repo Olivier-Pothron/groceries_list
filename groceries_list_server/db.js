@@ -1,4 +1,4 @@
-console.log('DB module loaded successfully');
+console.log('DB module loaded');
 
 const mysql = require('mysql2');
 
@@ -13,6 +13,15 @@ const mysqlPool = mysql.createPool({
   user: MYSQL_USER,
   password: MYSQL_PASSWORD,
   database: 'groceries_list'
+});
+
+mysqlPool.getConnection((err, connection) => {
+  if(err) {
+    console.log("DB Module : couldn't make connection to DB.", err.message);
+    return;
+  }
+  console.log("Successfully connected to DB.");
+  connection.release();
 });
 
 module.exports = mysqlPool; // Export the pool so other files can use it

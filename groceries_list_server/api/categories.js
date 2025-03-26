@@ -1,11 +1,11 @@
-console.log('Categories API loaded successfully');
+console.log('Categories API loaded');
 
 const express = require('express');
 const router = express.Router();
 const mysqlPool = require('../db');
 
 // GET CATEGORIES
-router.get('/', (req, res) => {
+router.get('/', (req, res, next) => {
   mysqlPool.query('SELECT * FROM categories', (err, results, fields) => {
     if (err) {
       console.error('Error executing query:', err);

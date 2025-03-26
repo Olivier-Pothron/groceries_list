@@ -1,4 +1,4 @@
-console.log('Sync API loaded successfully');
+console.log('Sync API loaded');
 
 const express = require('express');
 const router = express.Router();
