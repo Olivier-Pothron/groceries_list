@@ -4,7 +4,6 @@ const cors = require('cors');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const path = require('path');
-// require('dotenv').config({ path: require('path').join(__dirname, '.env') });
 require('dotenv').config(path.join(__dirname, '.env'));
 
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
@@ -15,17 +14,16 @@ const syncRoutes = require('./api/sync');
 
 const app = express();
 
+// Serve static files correctly
+app.use(express.static(path.join(__dirname, 'public')));
+// /?\ '__dirname' is a special variable representing the absolute path of
+// the current directory where my script is located. /?\
+
 // Set the correct views directory
 app.set('views', path.join(__dirname, 'views'));
 
 // Set the template engine (if using EJS, Pug, etc.) /|\NOT REALLY NECESSARY /|\
 app.set('view engine', 'ejs'); // or 'pug', 'hbs', etc.
-
-// Serve static files correctly
-app.use(express.static(path.join(__dirname, 'public')));
-
-// /?\ '__dirname' is a special variable representing the absolute path of
-// the current directory where my script is located. /?\
 
 // Enable CORS for all routes
 app.use(cors());
@@ -69,6 +67,9 @@ app.get('/', (req, res) => {
 
 app.get('/test', (req, res) => {
   res.send('TEST OK');
+  console.log("__dirname : ", __dirname);
+  console.log("whateverthefuck");
+
 });
 
 app.get('/admin', (req, res) => {

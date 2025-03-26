@@ -1,9 +1,7 @@
 console.log("'api_calls.js' loaded.");
 
-// const API_BASE_URL = process.env.API_BASE_URL;
-
 function addCategory (name) {       // ✓
-  return fetch(`/api/categories/`, {
+  return fetch(`api/categories/`, {
     method: "POST",
     headers: {
       "Content-type": "application/json"
@@ -23,7 +21,7 @@ function addCategory (name) {       // ✓
 };
 
 function addGrocery (name, categoryId) {  // ✓
-  return fetch(`/api/groceries/`, {
+  return fetch(`api/groceries/`, {
     method: "POST",
     headers: {
       "Content-type": "application/json"
@@ -48,7 +46,7 @@ function addGrocery (name, categoryId) {  // ✓
 }
 
 function deleteGrocery (groceryId) {
-  return fetch(`/api/groceries/${groceryId}`, {
+  return fetch(`api/groceries/${groceryId}`, {
     method: "DELETE"
   })
   .then(response => {
@@ -70,7 +68,7 @@ function toggleToBeBoughtInDB(element) {  // ✓
   const toBeBoughtState = element.dataset.toBeBought;
   const newToBeBoughtState = toBeBoughtState == '0' ? 1 : 0;
 
-  fetch(`/api/groceries/${groceryId}`, {
+  fetch(`api/groceries/${groceryId}`, {
     method: "PUT",
     headers: {
       "Content-type": "application/json"
