@@ -6,9 +6,6 @@ CORDOVA APP
 BROWSER CLIENT ::
 
 - add local database *check*
-
-
-
 - segregate modal
 - segregate events
 - make helper functions
@@ -25,3 +22,4 @@ and maybe flicker or some shit
 - maybe set a simpler message for duplicate entry (or errors in general)
 in the server console
 - fucking clean up all commented out code that's useless
+- install "morgan" ? To keep track of all incoming connections

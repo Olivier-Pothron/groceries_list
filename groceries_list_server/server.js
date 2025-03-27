@@ -44,9 +44,6 @@ app.use('/api/sync', syncRoutes);
 
 app.set("view engine", "ejs"); // Set EJS as the templating engine
 
-// app.use(express.static('public')); // Serve static files from the 'public' directory
-
-
 // ** Middleware to authenticate JWT **
 // const authenticateToken = (req, res, next) => {
 //   const authHeader = req.headers['authorization'];
