@@ -98,11 +98,6 @@ router.post("/", (req, res) => {
   );
 });
 
-// ADD GROCERY /REVISITED\
-// router.post("/", (req, res) {
-
-// })
-
 // DELETE GROCERY
 router.delete("/:id", (req, res) => {
   const id = req.params.id;
@@ -171,3 +166,15 @@ router.put("/:id", (req, res) => {
 
 // Export the router so it can be used in server.js
 module.exports = router;
+
+// TEST :
+
+router.post("/testPost", (req, res) => {
+  console.log(req.body);
+
+  res.status(200).json({
+    message: "Groceries received",
+    length: req.length,
+    groceries: req.body
+  });
+});

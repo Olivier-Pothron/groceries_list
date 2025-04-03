@@ -1,0 +1,27 @@
+const mysqlPool = require('../db');
+
+// GET OR CREATE CATEGORY FOR USE IN GROCERY ADDITION ROUTE
+function getOrCreateCategory(categoryName, callback) {
+  const normalizedName = categoryName.toLowerCase().trim();
+
+  // 1- check if category exists
+  idQuery = 'SELECT id FROM categories WHERE name = ?';
+  mysqlPool.query(idQuery, [normalizedName], (err, existing) => {
+    if (err) return callback(err);
+
+    // 2- Category exists ? Return ID
+    if (existing.length > 0) {
+      callback(null, { id: existing[0].id, created: false });
+    } else {
+      console.log("There is something to be added !");
+      // 3- Category doesn't exist ? INSERT and return ID
+      insertQuery = 'INSERT INTO categories (name) VALUES (?)';
+      mysqlPool.query(insertQuery, [normalizedName], (err, inserted) => {
+        if (err) return callback(err);
+        callback(null, { id: inserted.insertId, created: true });
+      });
+    }
+  });
+}
+
+module.exports = { getOrCreateCategory };

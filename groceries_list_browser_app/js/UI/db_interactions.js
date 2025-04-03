@@ -81,6 +81,7 @@ function sendTableData( JSONTable, endpoint, callback ) {
   }
 }
 
+/*
 // function first sends categories and then groceries if categories success
 function syncUpDatabase() {
   const categoriesUrl =  "http://localhost:3000/api/sync/syncup/categories";
@@ -92,10 +93,22 @@ function syncUpDatabase() {
       const groceriesUrl =  "http://localhost:3000/api/sync/syncup/groceries/";
       const groceriesJSONData = exportGroceriesToJSON();
       console.log("Sending *groceries* xml req.");
-      
+
       sendTableData( groceriesJSONData, groceriesUrl);
     } else {
       console.error("Error sending categories table");
     }
   });
+}
+*/
+
+// SYNC TEST :
+
+function syncGroceriesToServer(callback) {
+  const groceriesToSend = [
+    { newGroceryName: "portos", category: "alcool" },
+    { newGroceryName: "aramis", category: "apéro"}
+  ]
+
+
 }

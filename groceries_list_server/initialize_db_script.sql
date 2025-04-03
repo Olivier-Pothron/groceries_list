@@ -11,8 +11,9 @@ CREATE TABLE categories (
 CREATE TABLE groceries (
 	id INT AUTO_INCREMENT PRIMARY KEY,
 	name VARCHAR(255) NOT NULL,
-	to_be_bought INT DEFAULT 0,
+	to_be_bought TINYINT(1) DEFAULT 0,
 	category_id INT,
+  last_modified TIMESTAMP,
 	FOREIGN KEY (category_id) REFERENCES categories(id),
 	UNIQUE (name, category_id)
 );

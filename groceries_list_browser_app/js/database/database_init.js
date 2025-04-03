@@ -20,7 +20,7 @@ async function initDatabase() {
       console.log("Loading existing DB from localStorage.")
       db = new SQL.Database(localDb);
     }
-    
+
     console.log("Database initialized.");
 
     // Fire the databaseReady event
@@ -44,8 +44,20 @@ function createTables() {
     name TEXT NOT NULL,
     category_id INTEGER,
     to_be_bought INTEGER DEFAULT 0,
+    is_dirty INTEGER DEFAULT 0,
     FOREIGN KEY (category_id) REFERENCES groceries_categories(id),
     UNIQUE(name, category_id) );
+    `);
+
+  // Simple key-value store for sync timestamps
+  db.run(`CREATE TABLE IF NOT EXISTS sync_meta (
+    key TEXT PRIMARY KEY,
+    value TEXT
+    `);
+
+  // Initialize (first run)
+  db.run(`INSERT OR IGNORE INTO sync_meta (key, value)
+    VALUES ('last_sync', '1970-01-01T00:00:00Z')
     `);
 
   console.log("'groceries_categories' table created");
