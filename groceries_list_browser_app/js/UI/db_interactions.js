@@ -81,6 +81,16 @@ function sendTableData( JSONTable, endpoint, callback ) {
   }
 }
 
+function sync() {   // for testing purpose
+  const nowDate = "1999-01-20T14:22:53";
+  updateSyncDate(nowDate, (res) => {
+    console.log(res);
+  });
+  fetchTheDate((res) => {
+    console.log("Last sync date: ", res);
+  });
+}
+
 /*
 // function first sends categories and then groceries if categories success
 function syncUpDatabase() {
@@ -104,11 +114,9 @@ function syncUpDatabase() {
 
 // SYNC TEST :
 
-function syncGroceriesToServer(callback) {
-  const groceriesToSend = [
-    { newGroceryName: "portos", category: "alcool" },
-    { newGroceryName: "aramis", category: "apéro"}
-  ]
-
-
-}
+// function syncGroceriesToServer(callback) {
+//   const groceriesToSend = [
+//     { newGroceryName: "portos", category: "alcool" },
+//     { newGroceryName: "aramis", category: "apéro"}
+//   ]
+// }

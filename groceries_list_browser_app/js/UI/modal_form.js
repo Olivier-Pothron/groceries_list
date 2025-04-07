@@ -143,7 +143,7 @@ const handleCustomCategory = (customCategoryName, callback) => {
 const handleGroceryAddition = (itemName, categoryId, categoryName, callback) => {
   addGrocery(itemName, categoryId, function(error, groceryId) {
     if(error) {
-      if (error.message.includes("UNIQUE constraint failed")) {                 // check if item in cat already in dd
+      if (error.message.includes("UNIQUE constraint failed")) {                 // check if item in cat already in db
         userLog(`${itemName} already in database with category ${categoryName}.`, 'warning');
       } else {
         userLog("Error adding grocery!", 'error');

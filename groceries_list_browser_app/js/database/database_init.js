@@ -8,13 +8,14 @@ async function initDatabase() {
     const SQL = await initSqlJs({ locateFile: file => `https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.6.2/${file}` });
 
     // Check localStorage for an existing database
-    const base64StringDatabase = localStorage.getItem('myDatabase');
+    const base64StringDatabase = localStorage.getItem('groceriesList');
     if(!base64StringDatabase) {
       console.log("No DB in localStorage.");
       db = new SQL.Database(); // Creates an in-memory database
       createTables();
       seedCategories();
       seedGroceries();
+      seedSyncMeta();
     } else {
       const localDb = loadDatabase(base64StringDatabase);
       console.log("Loading existing DB from localStorage.")
@@ -33,35 +34,30 @@ async function initDatabase() {
 
 // Creating Tables
 function createTables() {
-  db.run(`CREATE TABLE IF NOT EXISTS groceries_categories (
+  db.run(`CREATE TABLE IF NOT EXISTS category (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL,
     UNIQUE(name));
     `);
+  console.log("'category' table created");
 
-  db.run(`CREATE TABLE IF NOT EXISTS groceries_list (
+  db.run(`CREATE TABLE IF NOT EXISTS grocery (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL,
     category_id INTEGER,
     to_be_bought INTEGER DEFAULT 0,
     is_dirty INTEGER DEFAULT 0,
-    FOREIGN KEY (category_id) REFERENCES groceries_categories(id),
+    FOREIGN KEY (category_id) REFERENCES category(id),
     UNIQUE(name, category_id) );
     `);
+  console.log("'grocery' table created");
 
   // Simple key-value store for sync timestamps
   db.run(`CREATE TABLE IF NOT EXISTS sync_meta (
     key TEXT PRIMARY KEY,
-    value TEXT
+    value TEXT );
     `);
-
-  // Initialize (first run)
-  db.run(`INSERT OR IGNORE INTO sync_meta (key, value)
-    VALUES ('last_sync', '1970-01-01T00:00:00Z')
-    `);
-
-  console.log("'groceries_categories' table created");
-  console.log("'groceries_list' table created");
+  console.log("'sync_meta' table created");
 }
 
 function seedCategories() {
@@ -80,7 +76,7 @@ function seedCategories() {
     { name: 'pet'}
   ];
 
-  const stmt = db.prepare("INSERT INTO groceries_categories (name) VALUES (?);");
+  const stmt = db.prepare("INSERT INTO category (name) VALUES (?);");
 
   for (let category of categories) {
     stmt.run([category.name]);
@@ -115,7 +111,7 @@ function seedGroceries() {
     { name: "pâté de sureau", category: null, to_be_bought: 0  }
   ];
 
-  const stmt = db.prepare("INSERT INTO groceries_list (name, category_id, to_be_bought) VALUES (?, ?, ?);");
+  const stmt = db.prepare("INSERT INTO grocery (name, category_id, to_be_bought) VALUES (?, ?, ?);");
 
   for (let grocery of groceries) {
     stmt.run([grocery.name, grocery.category, grocery.to_be_bought]);
@@ -123,6 +119,13 @@ function seedGroceries() {
 
   stmt.free();
   console.log("Groceries seeded.")
+}
+
+function seedSyncMeta() {
+  db.run(`INSERT OR IGNORE INTO sync_meta (key, value)
+    VALUES ('last_sync', '1970-01-01T00:00:00Z')
+    `);
+  console.log("Sync initialized.")
 }
 
 initDatabase();

@@ -195,5 +195,5 @@ localRemButt.addEventListener("click", () => {
 
 // SYNCING DB
 syncupButt.addEventListener("click", () => {
-  syncUpDatabase();
+  sync();   //this is for testing purpose
 })

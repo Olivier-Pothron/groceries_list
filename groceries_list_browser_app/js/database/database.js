@@ -2,7 +2,7 @@ console.log("'database.js' loaded");
 
 function getCategories(callback) {
   try {
-    const query = "SELECT * FROM groceries_categories;"
+    const query = "SELECT * FROM category;"
     const res = db.exec(query);
 
     let categoriesArray = [];
@@ -27,7 +27,7 @@ function getCategories(callback) {
 
 function addCategory(name, callback) {
   try {
-    const insertQuery = "INSERT INTO groceries_categories (name) VALUES (?) RETURNING id;";
+    const insertQuery = "INSERT INTO category (name) VALUES (?) RETURNING id;";
     const insertStmt = db.prepare(insertQuery);
     insertStmt.bind([name]);
     let insertId = null;                                                        // ? check this.lastID
@@ -53,7 +53,7 @@ function addCategory(name, callback) {
 
 function deleteCategory(id, callback) {
   try {
-    const identifyingQuery = "SELECT name FROM groceries_categories WHERE id = ?;";
+    const identifyingQuery = "SELECT name FROM category WHERE id = ?;";
     const selectStmt = db.prepare(identifyingQuery);
     selectStmt.bind([id]);
 
@@ -61,7 +61,7 @@ function deleteCategory(id, callback) {
       const category = selectStmt.getAsObject();
       const categoryName = category.name;
 
-      const deletionQuery = "DELETE FROM groceries_categories WHERE id = ?;";
+      const deletionQuery = "DELETE FROM category WHERE id = ?;";
       const deletionStmt = db.prepare(deletionQuery);
       deletionStmt.bind([id]);
       deletionStmt.run();
@@ -70,7 +70,7 @@ function deleteCategory(id, callback) {
       console.log(`%cCategory "${categoryName}" deleted from database.`,
         'color: green;');
 
-        if (callback) callback(null, categoryName);
+      if (callback) callback(null, categoryName);
       }
   } catch (error) {
     console.error("Error deleting category.", error);
@@ -82,14 +82,14 @@ function deleteCategory(id, callback) {
 function getGroceries(callback) {
   try {
     let query = `
-      SELECT  groceries_list.id,
-              groceries_list.name AS name,
-              groceries_list.to_be_bought,
-              groceries_categories.name AS category,
-              groceries_list.category_id AS category_id
-      FROM    groceries_list
-      LEFT JOIN    groceries_categories
-      ON      groceries_list.category_id = groceries_categories.id;
+      SELECT  grocery.id,
+              grocery.name AS name,
+              grocery.to_be_bought,
+              category.name AS category,
+              grocery.category_id AS category_id
+      FROM    grocery
+      LEFT JOIN    category
+      ON      grocery.category_id = category.id;
       `;
     const res = db.exec(query);
 
@@ -120,7 +120,7 @@ function addGrocery(name, catId, callback) {   // LOOK FOR THAT CALLBACK SHIT !
   try {
     let categoryName = null;
 
-    const insertQuery = "INSERT INTO groceries_list (name, category_id) VALUES (?, ?) RETURNING id;";
+    const insertQuery = "INSERT INTO grocery (name, category_id) VALUES (?, ?) RETURNING id;";
     const insertStmt = db.prepare(insertQuery);
     insertStmt.bind([name, catId || null]);
     let insertId = null;
@@ -132,11 +132,11 @@ function addGrocery(name, catId, callback) {   // LOOK FOR THAT CALLBACK SHIT !
 
     insertStmt.free();
 
-    console.log(`%cAdded "${name}" to groceries_list with ID ${insertId}`,
+    console.log(`%cAdded "${name}" to groceries with ID ${insertId}`,
       'color: green;');
 
     if(catId) {
-      const categoryQuery = "SELECT name FROM groceries_categories WHERE id = ?;";
+      const categoryQuery = "SELECT name FROM category WHERE id = ?;";
       const categoryStmt = db.prepare(categoryQuery);
       categoryStmt.bind([catId]);
 
@@ -164,7 +164,7 @@ function addGrocery(name, catId, callback) {   // LOOK FOR THAT CALLBACK SHIT !
 
 function deleteGrocery(id, callback) {
   try {
-    const identifyingQuery = "SELECT name FROM groceries_list WHERE id = ?;";
+    const identifyingQuery = "SELECT name FROM grocery WHERE id = ?;";
     const selectStmt = db.prepare(identifyingQuery);
     selectStmt.bind([id]);
 
@@ -172,7 +172,7 @@ function deleteGrocery(id, callback) {
       const category = selectStmt.getAsObject();
       const categoryName = category.name;
 
-      const deletionQuery = "DELETE FROM groceries_list WHERE id = ?;";
+      const deletionQuery = "DELETE FROM grocery WHERE id = ?;";
       const deletionStmt = db.prepare(deletionQuery);
       deletionStmt.bind([id]);
       deletionStmt.run();
@@ -199,7 +199,7 @@ function deleteGrocery(id, callback) {
 
 function toggleToBeBought(id, callback) {
   try {
-    const identifyingQuery = "SELECT name, to_be_bought FROM groceries_list WHERE id = ?;";
+    const identifyingQuery = "SELECT name, to_be_bought FROM grocery WHERE id = ?;";
     const selectStmt = db.prepare(identifyingQuery);
     selectStmt.bind([id]);
 
@@ -210,7 +210,7 @@ function toggleToBeBought(id, callback) {
       const newState = currentState === 0 ? 1 : 0;
       const updatedStateString = newState === 0 ? "Not to be bought" : "To be bought";
 
-      const updateQuery = "UPDATE groceries_list SET to_be_bought = ? WHERE id = ?;";
+      const updateQuery = "UPDATE grocery SET to_be_bought = ? WHERE id = ?;";
       const updateStmt = db.prepare(updateQuery);
       updateStmt.bind([newState, id]);
       updateStmt.run();
@@ -252,7 +252,7 @@ function saveDatabase(db) {
   const base64String = btoa(binaryString);
 
   // 4. Store the Base64 string in localStorage
-  localStorage.setItem('myDatabase', base64String);
+  localStorage.setItem('groceriesList', base64String);
 }
 
 function loadDatabase(base64String) {
@@ -266,6 +266,26 @@ function loadDatabase(base64String) {
 }
 
 function removeDatabase() {
-  localStorage.removeItem('myDatabase');
+  localStorage.removeItem('groceriesList');
   initDatabase();
+}
+
+function testtingCallback(stuff, callback) {
+  console.log(stuff);
+  callback("shakemyfuckinghead");
+}
+
+function updateSyncDate(date, callback) {
+  const syncQuery = 'UPDATE sync_meta SET value = ?;'
+  const syncStmt = db.prepare(syncQuery);
+  syncStmt.bind([date]);
+  syncStmt.run();
+  syncStmt.free();
+
+  callback("Done updating sync date");
+}
+
+function fetchTheDate(callback) {
+  const response = db.exec(`SELECT value FROM sync_meta;`);
+  callback(response[0].values[0][0]);
 }
