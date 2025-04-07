@@ -8,6 +8,7 @@ const handleCustomCategory = (customCategoryName) => {
     addCategoryToList(newCategory);
     addCategoryToSelector(newCategory, newCategoryId);
     userLog(`Category '${newCategory}' added`, 'success');
+    console.log("Handler new categoryId: ", newCategoryId);
     return newCategoryId;
   })
   .catch(error => {
@@ -33,10 +34,18 @@ function deleteGroceryElement(groceryElement) {
   return deleteGrocery(groceryId)
   .then(response => {
     // console.log("Status: ", response.status);
+    const groceriesList = groceryElement.parentNode;
+    const categoryElement = groceriesList.parentNode;
+    console.log("Parent Node of deleted element: ", groceriesList);
     groceryElement.classList.add('fade-out');
     setTimeout(() => {
       groceryElement.remove();
-    }, 1000);
+      console.log("Number of elements in groceries list: ", groceriesList.childElementCount);
+      if ( groceriesList.childElementCount == 0)
+      setTimeout(() => {
+        categoryElement.remove();
+      }, 500);
+    }, 500);
     userLog(`'${groceryName}' deleted from database`, 'success');
   })
   .catch(error => {

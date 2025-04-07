@@ -6,7 +6,7 @@ const mysqlPool = require('../db');
 
 // GET CATEGORIES
 router.get('/', (req, res, next) => {
-  mysqlPool.query('SELECT * FROM categories', (err, results, fields) => {
+  mysqlPool.query('SELECT * FROM category', (err, results, fields) => {
     if (err) {
       console.error('Error executing query:', err);
       return next(err);
@@ -24,7 +24,7 @@ router.post('/', (req, res) => {
     return res.status(400).json({ error: 'Category name is required' });
   }
 
-  const insertQuery = 'INSERT INTO categories(name) VALUES (?)';
+  const insertQuery = 'INSERT INTO category(name) VALUES (?) RETURNING id';
   mysqlPool.query(insertQuery, [newCategoryName.toLowerCase()], (err, insertResults) => {
     if (err) {
       if (err.code === 'ER_DUP_ENTRY') {
@@ -36,14 +36,19 @@ router.post('/', (req, res) => {
       return;
     }
 
-    const newCategoryId = insertResults.insertId;
+    console.log("Insert category result from server: ", insertResults[0].id);
+
+    const newCategoryId = insertResults[0].id;
+
+    console.log("NewcategoryId from the server: ", newCategoryId);
+
     const newCategory = { id: newCategoryId,
                           name: newCategoryName.toLowerCase()};
 
     // Formatting the request time to a more readable format
     const formattedRequestTime = new Date(req.requestTime).toLocaleString();
 
-    console.log(`${newCategoryName.toLowerCase()} inserted into Categories List with `+
+    console.log(`${newCategoryName.toLowerCase()} inserted into category List with `+
                 `ID ${newCategoryId} ` +
                 `at ${formattedRequestTime}`);
     res.status(200).json(newCategory);
@@ -55,7 +60,7 @@ router.delete('/:id', (req, res) => {
   const id = req.params.id;
   let categoryName = "";
 
-  const nameQuery = 'SELECT name FROM categories WHERE id = ?';
+  const nameQuery = 'SELECT name FROM category WHERE id = ?';
   mysqlPool.query(nameQuery, [id], (err, results) => {
     if (err) {
       console.error('Error executing query:', err);
@@ -68,7 +73,7 @@ router.delete('/:id', (req, res) => {
   // Formatting the request time to a more readable format
   const formattedRequestTime = new Date(req.requestTime).toLocaleString();
 
-  const deleteQuery = 'DELETE FROM categories WHERE id = ?';
+  const deleteQuery = 'DELETE FROM category WHERE id = ?';
   mysqlPool.query(deleteQuery, [id], (err, results) => {
     if (err) {
       console.error('Error executing query:', err);
@@ -79,6 +84,10 @@ router.delete('/:id', (req, res) => {
                 `${formattedRequestTime}`);
     res.status(200).json({ success: true });
   });
+});
+
+router.post('/sync', (req, res) => {
+
 });
 
 // Export the router so it can be used in server.js

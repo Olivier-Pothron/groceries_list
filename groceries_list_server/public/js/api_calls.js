@@ -15,6 +15,7 @@ function addCategory (name) {       // ✓
     return response.json();
   })
   .then(data => {
+    console.log("addCategory API call: ", data);
     return data;
   })
   .catch(error => console.error("Error adding category:", error));

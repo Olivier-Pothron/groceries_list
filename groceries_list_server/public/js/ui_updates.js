@@ -96,31 +96,6 @@ function createGroceryElement(grocery) {
   return groceryElement;
 }
 
-// OLD STUFF ::
-/* function createGroceryElement(grocery) {
-  const groceryElement = document.createElement("li");
-  groceryElement.classList.add("grocery-element");
-
-  groceryElement.setAttribute('data-id', grocery.id);
-  groceryElement.setAttribute('data-name', grocery.name);
-  groceryElement.setAttribute('data-category', grocery.category);
-  groceryElement.setAttribute('data-to-be-bought', grocery.to_be_bought);
-
-  const groceryName = document.createElement("div");
-  groceryName.textContent = grocery.name;
-  groceryName.classList.add("grocery-text");
-
-  const groceryCategory = document.createElement("div");
-  groceryCategory.classList.add("category-text");
-
-  // ASSEMBLING THE GROCERY
-  groceryElement.appendChild(groceryName);
-  groceryElement.appendChild(groceryCategory);
-
-  return groceryElement;
-}
-*/
-
 
 // WHAT I NEED FOR A SMOOTH ADDItiON/DELETION OF GROCERY:
 //  > ADDITION :

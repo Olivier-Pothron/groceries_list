@@ -49,8 +49,12 @@ addNewItemForm.addEventListener("submit", (event) => {
 const processFormSubmission = (itemName, categoryId, categoryName, categoryType) => {
   if (categoryType === 'custom') {
     handleCustomCategory(categoryName)
-    .then(newCategoryId => handleGroceryAddition(itemName.toLowerCase(), newCategoryId))
+    .then(newCategoryId => {
+      console.log("Process form submission Category Id: ", newCategoryId);
+      return handleGroceryAddition(itemName.toLowerCase(), newCategoryId);
+    })
     .then(groceryObject => {
+      console.log("Grocery obj in #custom modal form: ", groceryObject);
       addGroceryToGroceriesList(groceryObject);
     })
     .catch(error => {
@@ -59,6 +63,7 @@ const processFormSubmission = (itemName, categoryId, categoryName, categoryType)
   } else {
     handleGroceryAddition(itemName.toLowerCase(), categoryId)
     .then(groceryObject => {
+      console.log("Grocery obj in modal form: ", groceryObject);
       addGroceryToGroceriesList(groceryObject);
     })
     .catch(error => {

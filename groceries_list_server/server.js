@@ -10,7 +10,7 @@ const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
 
 const categoriesRoutes = require('./api/categories');
 const groceriesRoutes = require('./api/groceries');
-const syncRoutes = require('./api/sync');
+// const syncRoutes = require('./api/sync');
 
 const app = express();
 
@@ -40,7 +40,7 @@ app.use((req, res, next) => {
 // API routes
 app.use('/api/categories', categoriesRoutes);
 app.use('/api/groceries', groceriesRoutes);
-app.use('/api/sync', syncRoutes);
+// app.use('/api/sync', syncRoutes);
 
 app.set("view engine", "ejs"); // Set EJS as the templating engine
 
@@ -86,8 +86,8 @@ app.get('/groceries', (req, res, next) => {
               g_list.to_be_bought,
               g_cat.name AS category,
               g_cat.id AS category_id
-      FROM    groceries AS g_list
-      RIGHT JOIN    categories AS g_cat
+      FROM    grocery AS g_list
+      RIGHT JOIN    category AS g_cat
       ON      g_list.category_id = g_cat.id;
       `;
 
@@ -130,7 +130,7 @@ app.get('/groceries', (req, res, next) => {
 });
 
 app.get('/myList', (req, res) => {
-  mysqlPool.query('SELECT * FROM groceries WHERE to_be_bought = 1', (err, results, fields) => {
+  mysqlPool.query('SELECT * FROM grocery WHERE to_be_bought = 1', (err, results, fields) => {
     if (err) {
       console.error('Error executing query:', err);
       return next(err);

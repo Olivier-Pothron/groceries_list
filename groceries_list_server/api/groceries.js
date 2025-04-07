@@ -7,8 +7,8 @@ const mysqlPool = require("../db");
 // GET GROCERIES
 router.get("/", (req, res, next) => {
   const query = ` SELECT g.id, g.name, g.to_be_bought, c.name AS category
-                  FROM groceries AS g
-                  LEFT JOIN categories AS c
+                  FROM grocery AS g
+                  LEFT JOIN category AS c
                   ON g.category_id = c.id`;
   mysqlPool.query(query, (err, results, fields) => {
     if (err) {
@@ -34,6 +34,9 @@ router.post("/", (req, res) => {
 
   let { newGroceryName, categoryId } = req.body;
 
+  console.log("New Grocery Name from request: ", newGroceryName);
+  console.log("Catgegory ID from request: ", categoryId);
+
   categoryId = categoryId || null;
 
   // Validate newGroceryName is not empty
@@ -42,7 +45,7 @@ router.post("/", (req, res) => {
   }
 
   const insertQuery =
-    "INSERT INTO groceries(name, category_id) VALUES (?, ?)";
+    "INSERT INTO grocery(name, category_id) VALUES (?, ?) RETURNING id";
   mysqlPool.query(
     insertQuery,
     [newGroceryName.toLowerCase(), categoryId],
@@ -59,15 +62,16 @@ router.post("/", (req, res) => {
         return;
       }
 
-      const newItemId = insertResults.insertId;
+      const newItemId = insertResults[0].id;
+
       const responseQuery = `SELECT g.id, g.name, g.to_be_bought,
                           c.name AS category, c.id AS category_id
-                          FROM groceries AS g
-                          LEFT JOIN categories AS c
+                          FROM grocery AS g
+                          LEFT JOIN category AS c
                           ON g.category_id = c.id
-                          WHERE g.id = LAST_INSERT_ID();
+                          WHERE g.id = ?;
                           `;
-      mysqlPool.query(responseQuery, (err, queryResults) => {
+      mysqlPool.query(responseQuery, [newItemId], (err, queryResults) => {
         if (err) {
           console.error("Error executing query:", err);
           res.status(500).json({ error: "Database error" });
@@ -76,6 +80,8 @@ router.post("/", (req, res) => {
 
         const categoryName = queryResults[0].category;
         const categoryId = queryResults[0].category_id;
+        console.log("Category id from grocerie insert: ", categoryId);
+        console.log("Category Name from grocerie insert: ", categoryName);
         const newItem = {
           id: newItemId,
           name: newGroceryName,
@@ -88,7 +94,7 @@ router.post("/", (req, res) => {
         const formattedRequestTime = new Date(req.requestTime).toLocaleString();
 
         console.log(
-          `${newGroceryName} inserted into Groceries List with ` +
+          `${newGroceryName} inserted into grocery List with ` +
             `ID ${newItemId} and Category ${categoryName} ` +
             `at ${formattedRequestTime}`
         );
@@ -103,7 +109,7 @@ router.delete("/:id", (req, res) => {
   const id = req.params.id;
   let itemName = "";
 
-  const nameQuery = "SELECT name FROM groceries WHERE id = ?";
+  const nameQuery = "SELECT name FROM grocery WHERE id = ?";
   mysqlPool.query(nameQuery, [id], (err, results) => {
     if (err) {
       console.error("Error executing query:", err);
@@ -115,7 +121,7 @@ router.delete("/:id", (req, res) => {
     // Formatting the request time to a more readable format
     const formattedRequestTime = new Date(req.requestTime).toLocaleString();
 
-    const deleteQuery = "DELETE FROM groceries WHERE id = ?";
+    const deleteQuery = "DELETE FROM grocery WHERE id = ?";
     mysqlPool.query(deleteQuery, [id], (err, results) => {
       if (err) {
         console.error("Error deleting row:", err);
@@ -137,7 +143,7 @@ router.put("/:id", (req, res) => {
   const { toBeBought } = req.body;
 
   // Check if id exists in the database
-  const idQuery = "SELECT id FROM groceries WHERE id = ?";
+  const idQuery = "SELECT id FROM grocery WHERE id = ?";
   mysqlPool.query(idQuery, [id], (err, results) => {
     if (err) {
       console.error("Error executing query:", err);
@@ -151,7 +157,7 @@ router.put("/:id", (req, res) => {
 
     // Update the to_be_bought value
     const updateQuery =
-      "UPDATE groceries SET to_be_bought = ? WHERE id = ?";
+      "UPDATE grocery SET to_be_bought = ? WHERE id = ?";
     mysqlPool.query(updateQuery, [toBeBought, id], (err, results) => {
       if (err) {
         console.error("Error executing query:", err);
@@ -164,10 +170,12 @@ router.put("/:id", (req, res) => {
   });
 });
 
-// Export the router so it can be used in server.js
-module.exports = router;
 
 // TEST :
+
+router.post('/sync', (req, res) => {
+
+});
 
 router.post("/testPost", (req, res) => {
   console.log(req.body);
@@ -178,3 +186,6 @@ router.post("/testPost", (req, res) => {
     groceries: req.body
   });
 });
+
+// Export the router so it can be used in server.js
+module.exports = router;
