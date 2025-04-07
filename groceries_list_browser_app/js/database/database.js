@@ -86,7 +86,8 @@ function getGroceries(callback) {
               grocery.name AS name,
               grocery.to_be_bought,
               category.name AS category,
-              grocery.category_id AS category_id
+              grocery.category_id AS category_id,
+              grocery.is_dirty
       FROM    grocery
       LEFT JOIN    category
       ON      grocery.category_id = category.id;
@@ -101,7 +102,8 @@ function getGroceries(callback) {
         name: row[1],
         toBeBought: row[2],
         category: row[3],
-        category_id: row[4]
+        category_id: row[4],
+        isdirty: row[5]
       }));
 
     } else {

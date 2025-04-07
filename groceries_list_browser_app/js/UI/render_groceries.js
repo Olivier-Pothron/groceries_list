@@ -83,6 +83,7 @@ function createGroceryElement(grocery) {
   groceryElement.setAttribute('data-grocery-id', grocery.id);
   groceryElement.setAttribute('data-grocery-name', grocery.name);
   groceryElement.setAttribute('data-grocery-category', grocery.category);
+  groceryElement.setAttribute('data-grocery-dirty', grocery.isdirty);
 
   if (grocery.toBeBought) {
     groceryElement.classList.add("to-be-bought");
@@ -196,4 +197,9 @@ localRemButt.addEventListener("click", () => {
 // SYNCING DB
 syncupButt.addEventListener("click", () => {
   sync();   //this is for testing purpose
+  console.log(generateUUID());
 })
+
+function generateUUID() {
+  return crypto.randomUUID();
+}
