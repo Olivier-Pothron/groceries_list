@@ -10,6 +10,7 @@ function loadGroceriesFromDB() {
       userLog("SUCCESS FETCHING GROCERIES FROM DB!", 'success');
 
       groceriesArray =  groceries;
+      // console.log("Db interactions Groceries array: ", groceries);
     }
   });
   return groceriesArray;
@@ -23,7 +24,7 @@ function loadCategoriesFromDB() {
       userLog("ERROR FETCHING CATEGORIES", 'error');
     } else if (categories) {
       userLog("SUCCESS FETCHING CATEGORIES FROM DB!", 'success');
-
+      // console.log("Db interactions Categories array: ", categories)
       categoriesObject = categories;
     }
   });

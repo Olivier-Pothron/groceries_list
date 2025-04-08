@@ -110,6 +110,7 @@ const processFormSubmission = (itemName, categoryId, categoryName, categoryType)
       });
     });
   } else {
+    console.log("processFormSubmission: ", itemName, categoryId, categoryName);
     handleGroceryAddition(itemName, categoryId, categoryName, (groceryObject) => {
       if (groceryObject.category) {
         const newGrocery = createGroceryElement(groceryObject);
@@ -141,7 +142,9 @@ const handleCustomCategory = (customCategoryName, callback) => {
 }
 
 const handleGroceryAddition = (itemName, categoryId, categoryName, callback) => {
-  addGrocery(itemName, categoryId, function(error, groceryId) {
+  const groceryUUID = crypto.randomUUID();
+  console.log("handleGroceryAddition: ", itemName, categoryId, groceryUUID);
+  addGrocery(itemName, categoryId, groceryUUID, function(error, success) {
     if(error) {
       if (error.message.includes("UNIQUE constraint failed")) {                 // check if item in cat already in db
         userLog(`${itemName} already in database with category ${categoryName}.`, 'warning');
@@ -149,11 +152,11 @@ const handleGroceryAddition = (itemName, categoryId, categoryName, callback) => 
         userLog("Error adding grocery!", 'error');
       }
       return;
-    } else if (groceryId) {
+    } else if (success) {
       const groceryObject = {
-        id: groceryId,
+        id: groceryUUID,
         name: itemName,
-        category: categoryName || "No category",
+        category: categoryName || "No category",
         isdirty: 1
       };
       callback(groceryObject);

@@ -35,15 +35,32 @@ async function initDatabase() {
 // Creating Tables
 function createTables() {
   db.run(`CREATE TABLE IF NOT EXISTS category (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    -- id INTEGER PRIMARY KEY AUTOINCREMENT,
+    id TEXT PRIMARY KEY,
     name TEXT NOT NULL,
     is_dirty INTEGER DEFAULT 0,
     UNIQUE(name));
     `);
+  db.run(`CREATE TRIGGER IF NOT EXISTS category_auto_uuid
+    AFTER INSERT
+    ON category
+    WHEN NEW.id IS NULL
+    BEGIN
+      UPDATE category SET id = (
+        lower(hex(randomblob(4))) || '-' ||
+        lower(hex(randomblob(2))) || '-4' ||
+        substr(lower(hex(randomblob(2))), 2) || '-' ||
+        substr('89ab', abs(random()) % 4 + 1, 1) ||
+        substr(lower(hex(randomblob(2))), 2) || '-' ||
+        lower(hex(randomblob(6)))
+      ) WHERE rowid = NEW.rowid;
+    END;
+    `);
   console.log("'category' table created");
 
   db.run(`CREATE TABLE IF NOT EXISTS grocery (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    -- id INTEGER PRIMARY KEY AUTOINCREMENT,
+    id TEXT PRIMARY KEY,
     name TEXT NOT NULL,
     category_id INTEGER,
     to_be_bought INTEGER DEFAULT 0,
@@ -51,13 +68,20 @@ function createTables() {
     FOREIGN KEY (category_id) REFERENCES category(id),
     UNIQUE(name, category_id) );
     `);
+
   db.run(`CREATE TRIGGER IF NOT EXISTS grocery_auto_uuid
     AFTER INSERT
     ON grocery
+    WHEN NEW.id IS NULL
     BEGIN
-      UPDATE grocery
-      SET is_dirty = 2
-      WHERE rowid = NEW.rowid;
+      UPDATE grocery SET id = (
+        lower(hex(randomblob(4))) || '-' ||
+        lower(hex(randomblob(2))) || '-4' ||
+        substr(lower(hex(randomblob(2))), 2) || '-' ||
+        substr('89ab', abs(random()) % 4 + 1, 1) ||
+        substr(lower(hex(randomblob(2))), 2) || '-' ||
+        lower(hex(randomblob(6)))
+      ) WHERE rowid = NEW.rowid;
     END;
     `);
   console.log("'grocery' table created");
@@ -99,35 +123,58 @@ function seedCategories() {
 function seedGroceries() {
 
   const groceries = [
-    { name: 'pommes', category: 1, to_be_bought: 0 },
-    { name: 'shampooing', category: 2, to_be_bought: 1 },
-    { name: 'frites', category: 3, to_be_bought: 1 },
-    { name: 'haricots verts', category: 3, to_be_bought: 1 },
-    { name: 'champignons', category: 3, to_be_bought: 1 },
-    { name: 'magnums', category: 3, to_be_bought: 1 },
-    { name: 'pommes de terre salardaises', category: 3, to_be_bought: 1 },
-    { name: 'moutarde', category: 4, to_be_bought: 1 },
-    { name: 'mayonnaise', category: 4, to_be_bought: 1 },
-    { name: 'sauce algérienne', category: 4, to_be_bought: 1 },
-    { name: 'sauce tartare', category: 4, to_be_bought: 1 },
-    { name: 'sauce au poivre', category: 4, to_be_bought: 1 },
-    { name: 'lait', category: 6, to_be_bought: 1 },
-    { name: "jus d'orange", category: 7, to_be_bought: 1 },
-    { name: 'gâteaux', category: 5, to_be_bought: 1 },
-    { name: "pavés de saumon", category: 8, to_be_bought: 1 },
-    { name: "piles", category: 9, to_be_bought: 1 },
-    { name: "drap", category: 10, to_be_bought: 1 },
-    { name: "litière", category: 11, to_be_bought: 1 },
+    { name: 'pommes', category: 'fruits & légumes', to_be_bought: 0 },
+    { name: 'shampooing', category: 'droguerie parfumerie hygiène', to_be_bought: 1 },
+    { name: 'frites', category: 'surgelés', to_be_bought: 1 },
+    { name: 'haricots verts', category: 'surgelés', to_be_bought: 1 },
+    { name: 'champignons', category: 'surgelés', to_be_bought: 1 },
+    { name: 'magnums', category: 'surgelés', to_be_bought: 1 },
+    { name: 'pommes de terre salardaises', category: 'surgelés', to_be_bought: 1 },
+    { name: 'moutarde', category: 'épicerie salée', to_be_bought: 1 },
+    { name: 'mayonnaise', category: 'épicerie salée', to_be_bought: 1 },
+    { name: 'sauce algérienne', category: 'épicerie salée', to_be_bought: 1 },
+    { name: 'sauce tartare', category: 'épicerie salée', to_be_bought: 1 },
+    { name: 'sauce au poivre', category: 'épicerie salée', to_be_bought: 1 },
+    { name: 'lait', category: 'crèmerie', to_be_bought: 1 },
+    { name: "jus d'orange", category: 'liquides', to_be_bought: 1 },
+    { name: 'gâteaux', category: 'épicerie sucrée', to_be_bought: 1 },
+    { name: "pavés de saumon", category: 'traiteur', to_be_bought: 1 },
+    { name: "piles", category: 'bazar', to_be_bought: 1 },
+    { name: "drap", category: 'textile', to_be_bought: 1 },
+    { name: "litière", category: 'pet', to_be_bought: 1 },
     { name: "pâté de sureau", category: null, to_be_bought: 0 }
   ];
 
-  const stmt = db.prepare("INSERT INTO grocery (name, category_id, to_be_bought) VALUES (?, ?, ?);");
+  // CREATING A VIEW TO HANDLE THE ADDITION OF GROCERIES WITH TEXT IN CATEGORY ID
+  // WITH AN 'INSTEAD OF' TRIGGER WITH WRITES ON THE GROCERY TABLE
+  db.exec(`CREATE VIEW grocery_view
+    AS SELECT * FROM grocery;`);
+  db.exec(`CREATE TRIGGER grocery_no_cat_id
+    INSTEAD OF INSERT ON grocery_view
+    BEGIN
+      INSERT INTO grocery (name, to_be_bought, category_id)
+      VALUES (
+        NEW.name,
+        NEW.to_be_bought,
+        CASE
+          WHEN NEW.category_id IS NULL THEN NULL
+          ELSE (SELECT id FROM category WHERE NEW.category_id = name)
+        END
+        );
+    END;
+    `)
+
+  const stmt = db.prepare("INSERT INTO grocery_view (name, category_id, to_be_bought) VALUES (?, ?, ?);");
 
   for (let grocery of groceries) {
     stmt.run([grocery.name, grocery.category, grocery.to_be_bought]);
   }
 
   stmt.free();
+
+  // DROPPING THE VIEW
+  db.exec('DROP VIEW grocery_view');
+
   console.log("Groceries seeded.")
 }
 

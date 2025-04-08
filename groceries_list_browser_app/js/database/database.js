@@ -25,24 +25,21 @@ function getCategories(callback) {
   }
 }
 
-function addCategory(name, callback) {
+function addCategory(name, categoryUUID, callback) {
   try {
-    const insertQuery = "INSERT INTO category (name) VALUES (?) RETURNING id;";
+    const insertQuery = `
+      INSERT INTO category (name, id)
+      VALUES (?, ?);
+      `;
     const insertStmt = db.prepare(insertQuery);
-    insertStmt.bind([name]);
-    let insertId = null;                                                        // ? check this.lastID
-
-    if (insertStmt.step()) {
-      const result = insertStmt.get();
-      insertId = result[0];
-    }
-
+    insertStmt.bind([name, categoryUUID]);
+    insertStmt.step();
     insertStmt.free();
 
-    console.log(`%cAdded "${name}" to categories list with insertId ${insertId}`,
+    console.log(`%cAdded "${name}" to categories list with insertId ${categoryUUID}`,
       'color: green;');
 
-    if (callback) callback(null, insertId);
+    if (callback) callback(null, categoryUUID);
 
     } catch (error) {
     console.error("Error adding category", error);
@@ -110,6 +107,8 @@ function getGroceries(callback) {
       console.log("No grocery found.");
     }
 
+    // console.log("Groceries Array from DB: ", groceriesArray);
+
     if (callback) callback(null, groceriesArray);
   } catch(error) {
     console.error("Error fetching groceries:", error);
@@ -118,23 +117,20 @@ function getGroceries(callback) {
   }
 }
 
-function addGrocery(name, catId, callback) {   // LOOK FOR THAT CALLBACK SHIT !
+function addGrocery(name, catId, groceryUUID, callback) {   // LOOK FOR THAT CALLBACK SHIT !
   try {
     let categoryName = null;
-
-    const insertQuery = "INSERT INTO grocery (name, category_id) VALUES (?, ?) RETURNING id;";
+    // /!\  REPLACE THAT SHIT WITH SOME DB.EXEC ! /!\
+    const insertQuery = `
+      INSERT INTO grocery (name, category_id, id, is_dirty)
+      VALUES (?, ?, ?, ?);
+      `;
     const insertStmt = db.prepare(insertQuery);
-    insertStmt.bind([name, catId || null]);
-    let insertId = null;
-
-    if (insertStmt.step()) {
-      const result = insertStmt.get();
-      insertId = result[0];
-    }
-
+    insertStmt.bind([name, catId || null, groceryUUID || null, 1]);
+    insertStmt.step();
     insertStmt.free();
 
-    console.log(`%cAdded "${name}" to groceries with ID ${insertId}`,
+    console.log(`%cAdded "${name}" to groceries with id "${groceryUUID}`,
       'color: green;');
 
     if(catId) {
@@ -157,7 +153,7 @@ function addGrocery(name, catId, callback) {   // LOOK FOR THAT CALLBACK SHIT !
     }
     insertStmt.free();
 
-    if (callback) callback(null, insertId);
+    if (callback) callback(null, "yes");
   } catch (error) {
     console.error("Error adding grocery", error);
     if (callback) callback(error, null);

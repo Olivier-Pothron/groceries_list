@@ -94,7 +94,7 @@ function createGroceryElement(grocery) {
   groceryName.classList.add("grocery-text");
 
   const groceryCategory = document.createElement("div");                        // the handling of "no cat" product is
-  groceryCategory.textContent = grocery.category || "No category";              // on the database side
+  groceryCategory.textContent = grocery.category || "No category";              // on the database side
   groceryCategory.classList.add("category-text");
 
   // ASSEMBLING THE GROCERY
@@ -106,8 +106,11 @@ function createGroceryElement(grocery) {
 
 function renderCategorySelectorOptions(arrayOfCategories) {
 
+  categorySelector.innerHTML = "";
+
   for(category of arrayOfCategories) {
     const categoryOption = document.createElement("option");
+    // console.log("rendercategory ID: ", category.id);
     categoryOption.setAttribute('data-category-id', category.id);
     categoryOption.textContent = category.name;
     categoryOption.value = category.name;
@@ -182,6 +185,7 @@ document.addEventListener("databaseReady", () => {
 
 // REFRESH LIST BUTTON
 updateButton.addEventListener("click", () => {
+  console.log("Refreshing...");
   const groceriesArray = loadGroceriesFromDB();
   const categoriesArray = loadCategoriesFromDB();
   renderGroceriesList(groceriesArray);
@@ -197,9 +201,4 @@ localRemButt.addEventListener("click", () => {
 // SYNCING DB
 syncupButt.addEventListener("click", () => {
   sync();   //this is for testing purpose
-  console.log(generateUUID());
 })
-
-function generateUUID() {
-  return crypto.randomUUID();
-}
