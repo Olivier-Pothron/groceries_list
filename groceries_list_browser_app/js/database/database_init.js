@@ -34,6 +34,7 @@ async function initDatabase() {
 
 // Creating Tables
 function createTables() {
+  // CATEGORY TABLE
   db.run(`CREATE TABLE IF NOT EXISTS category (
     -- id INTEGER PRIMARY KEY AUTOINCREMENT,
     id TEXT PRIMARY KEY,
@@ -58,6 +59,7 @@ function createTables() {
     `);
   console.log("'category' table created");
 
+  // GROCERY TABLE
   db.run(`CREATE TABLE IF NOT EXISTS grocery (
     -- id INTEGER PRIMARY KEY AUTOINCREMENT,
     id TEXT PRIMARY KEY,

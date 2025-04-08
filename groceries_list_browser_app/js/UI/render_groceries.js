@@ -107,6 +107,12 @@ function createGroceryElement(grocery) {
 function renderCategorySelectorOptions(arrayOfCategories) {
 
   categorySelector.innerHTML = "";
+  const disabledOption = document.createElement("option");
+  disabledOption.value = "";
+  disabledOption.textContent = 'Select category';
+  disabledOption.disabled = true;
+
+  categorySelector.add(disabledOption, 0);
 
   for(category of arrayOfCategories) {
     const categoryOption = document.createElement("option");
@@ -117,7 +123,7 @@ function renderCategorySelectorOptions(arrayOfCategories) {
     categorySelector.add(categoryOption);
   }
 
-  addCustomSelectorOption = document.createElement("option");
+  const addCustomSelectorOption = document.createElement("option");
   addCustomSelectorOption.value = "custom";
   addCustomSelectorOption.textContent = "***ajouter***";
   categorySelector.add(addCustomSelectorOption, categorySelector.options.length);

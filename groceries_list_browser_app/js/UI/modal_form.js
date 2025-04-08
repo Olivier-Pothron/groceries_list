@@ -205,6 +205,7 @@ window.addEventListener("hashchange", () => {
   hideValidationIcon(categorySelector);
   hideValidationIcon(formItemName);
   addNewItemForm.reset();
+  categorySelector.selectedIndex = 0;
   validationFeedback.textContent = "";
 });
 
