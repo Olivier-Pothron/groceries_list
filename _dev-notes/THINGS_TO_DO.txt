@@ -1,0 +1,46 @@
+CORDOVA APP
+
+- create initialize db js file
+- segregate events ?
+
+BROWSER CLIENT ::
+
+- add local database *check*
+- segregate modal
+- segregate events
+- make helper functions
+- do an automatic mapping function to handle get request
+
+SERVER :
+
+- <> server renders ejs file
+- <!>for now 030325, server relies on client js file to handle
+custom category.
+maybe add server side verification and handling addition of
+custom category
+- <!>look into ways to make added element to drop category list
+and maybe flicker or some shit
+- maybe set a simpler message for duplicate entry (or errors in general)
+in the server console
+- fucking clean up all commented out code that's useless
+- install "morgan" ? To keep track of all incoming connections
+
+SYNC SQLITE / MARIADB
+
+- Client side : function getDirtyCategories(callback)
+                function sendDirtyCategories + lastSyncDate
+- Server side : router.post('sync') receive Categories
+                function processDirtyCategoriesinBatch
+                function getAllGroceriesSinceLastSyncDate(callback)
+                response to the client
+- Client side : receive response from server
+                function updateCategories&GroceriesinBatch
+                function getDirtyGroceries(callback)
+                function sendDirtyGroceries
+- Server side : router.post('sync') receive groceries
+                function processDirtyGroceriesInBatch
+                generate new lastSyncDate
+                response to the client 200 + new lastSyncDate
+- Client side : receive response from server
+                update lastSyncDate
+                update is_dirty to 0 for  every sent groceries
