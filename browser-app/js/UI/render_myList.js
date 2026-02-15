@@ -4,12 +4,8 @@ console.log("'render_myList.js' loaded");
 // DOM ELEMENTS //
 //////////////////
 const myGroceriesList = document.getElementById("my-groceries-list");
-const logContainer = document.getElementById("log-container");
 
-const updateButton = document.getElementById("update_button");
 const localButt = document.getElementById("local-button");
-const myListButt = document.getElementById("fetch-tbb-groceries");
-const testRetButt = document.getElementById("test-retrieve-button");
 const localRemButt = document.getElementById("local-rem-button");
 
 /////////////////////////
@@ -18,7 +14,7 @@ const localRemButt = document.getElementById("local-rem-button");
 function renderMyGroceriesList(groceriesArray) {
   myGroceriesList.innerHTML = "";
   const toBeBoughtGroceries = groceriesArray.filter((grocery) => grocery.toBeBought === 1);
-  if (!toBeBoughtGroceries.length != 0) {
+  if (toBeBoughtGroceries.length === 0) {
     console.log("NO GROCERY!");
     return;
   }
@@ -44,7 +40,7 @@ function createGroceryElement(grocery) {
   groceryName.classList.add("grocery-text");
 
   const groceryCategory = document.createElement("div");
-  groceryCategory.textContent = grocery.category || "No category";
+  groceryCategory.textContent = grocery.category || "No category";
   groceryCategory.classList.add("category-text");
 
   groceryElement.appendChild(groceryName);

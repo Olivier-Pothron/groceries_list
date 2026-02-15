@@ -33,7 +33,7 @@ function loadCategoriesFromDB() {
 
 function toggleToBeBoughtInDB(itemId, groceryElement, callback) {
 
-  groceryName = groceryElement.dataset.groceryName;
+  let groceryName = groceryElement.dataset.groceryName;
 
   toggleToBeBought (itemId, function(error, newState) {
     if (error) {
@@ -49,15 +49,15 @@ function toggleToBeBoughtInDB(itemId, groceryElement, callback) {
 // DATABASE SYNCING
 
 function exportGroceriesToJSON() {
-  data = loadGroceriesFromDB();
-  jsonData = JSON.stringify(data);
+  let data = loadGroceriesFromDB();
+  let jsonData = JSON.stringify(data);
 
   return jsonData;
 }
 
 function exportCategoriesToJSON() {
-  data = loadCategoriesFromDB();
-  jsonData = JSON.stringify(data);
+  let data = loadCategoriesFromDB();
+  let jsonData = JSON.stringify(data);
 
   return jsonData;
 }

@@ -16,15 +16,19 @@ addNewItemForm.addEventListener("submit", (event) => {
 
   event.preventDefault();
 
+  // Storing function expressions objects in local variables
+  const itemValidation = validateItemNameInput();
+  const categoryValidation = validateCategoryInput();
+
+  // Destructuring validation objects
   const {
     valid: isItemNameValid,
-    name: itemName } = validateItemNameInput();
-
+    name: itemName } = itemValidation;
   const {
     valid: isCategoryValid,
     name: categoryName,
     type: categoryType,
-    id: categoryId } = validateCategoryInput();
+    id: categoryId } = categoryValidation;
 
   // reinitialize validation icons
   hideValidationIcon(formItemName);
@@ -35,7 +39,7 @@ addNewItemForm.addEventListener("submit", (event) => {
     shakeIt();
     showValidationIcon(formItemName, isItemNameValid);
     showValidationIcon(categorySelector, isCategoryValid);
-    validationFeedback.textContent = validationText(validateItemNameInput(), validateCategoryInput());
+    validationFeedback.textContent = validationText(itemValidation, categoryValidation);
     return;
   }
 
@@ -128,7 +132,7 @@ const handleCustomCategory = (customCategoryName, callback) => {
   addCategory(customCategoryName, function(error, categoryId) {
     if(error) {
       if (error.message.includes("UNIQUE constraint failed")) {                 // check if cat already in DB
-        userLog(`${categoryName} already in database !`, 'warning');
+        userLog(`${customCategoryName} already in database !`, 'warning');
       } else {
         userLog("Error adding category!", 'error');
       }

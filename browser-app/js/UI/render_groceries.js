@@ -2,14 +2,9 @@ console.log("'render_groceries.js' loaded");
 
 // DOM ELEMENTS
 const allGroceriesList = document.getElementById("all-groceries-list");
-const testParagraph = document.getElementById("listTest");
 const updateButton = document.getElementById("update-button");
-const logContainer = document.getElementById("log-container");
 const myGroceriesList = document.getElementById("my-groceries-list");
 
-const localButt = document.getElementById("local-button");
-const myListButt = document.getElementById("fetch-tbb-groceries");
-const testRetButt = document.getElementById("test-retrieve-button");
 const localRemButt = document.getElementById("local-rem-button");
 const syncupButt = document.getElementById("syncup-button");
 
@@ -157,54 +152,3 @@ function addCategoryToSelector(newCategory, newCategoryId) {
 
 // EVENTS //
 
-allGroceriesList.addEventListener("click", (event) => {
-  const categoryHeader = event.target.closest(".category-header");              // get clicked category list
-  const groceryElement = event.target.closest(".grocery-element");              // get clicked grocery
-
-  // TOGGLING GROCERY TO_BE_BOUGHT STATE
-  if (groceryElement) {
-    const groceryId = groceryElement.dataset.groceryId;
-
-    toggleToBeBoughtInDB(groceryId, groceryElement, (groceryElement) => {
-      groceryElement.classList.toggle("to-be-bought");
-    });
-  }
-
-  // TOGGLING DISPLAY OF CATEGORY LIST
-  if (categoryHeader) {
-    // Listen for the transitionstart event
-    const groceriesList = categoryHeader.nextElementSibling;
-
-    const categoryButton = categoryHeader.lastChild;
-    groceriesDropDown(groceriesList, categoryButton);
-  }
-});
-
-// ON DATABASE LOADED
-// RENDERS GROCERIES LIST AND CATEGORY SELECTOR OPTIONS
-document.addEventListener("databaseReady", () => {
-  const groceriesArray = loadGroceriesFromDB();
-  const categoriesArray = loadCategoriesFromDB();
-  renderGroceriesList(groceriesArray);
-  renderCategorySelectorOptions(categoriesArray);
-});
-
-// REFRESH LIST BUTTON
-updateButton.addEventListener("click", () => {
-  console.log("Refreshing...");
-  const groceriesArray = loadGroceriesFromDB();
-  const categoriesArray = loadCategoriesFromDB();
-  renderGroceriesList(groceriesArray);
-  renderCategorySelectorOptions(categoriesArray);
-});
-
-// DATABASE STORING AND RETRIEVING
-localRemButt.addEventListener("click", () => {
-  removeDatabase();
-  console.log("Database removed from localStorage");
-})
-
-// SYNCING DB
-syncupButt.addEventListener("click", () => {
-  sync();   //this is for testing purpose
-})

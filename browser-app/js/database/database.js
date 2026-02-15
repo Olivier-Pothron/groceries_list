@@ -117,10 +117,9 @@ function getGroceries(callback) {
   }
 }
 
-function addGrocery(name, catId, groceryUUID, callback) {   // LOOK FOR THAT CALLBACK SHIT !
+function addGrocery(name, catId, groceryUUID, callback) {
   try {
     let categoryName = null;
-    // /!\  REPLACE THAT SHIT WITH SOME DB.EXEC ! /!\
     const insertQuery = `
       INSERT INTO grocery (name, category_id, id, is_dirty)
       VALUES (?, ?, ?, ?);
@@ -151,7 +150,6 @@ function addGrocery(name, catId, groceryUUID, callback) {   // LOOK FOR THAT CAL
     } else {
       console.log("No category specified for the grocery.");
     }
-    insertStmt.free();
 
     if (callback) callback(null, "yes");
   } catch (error) {
@@ -266,11 +264,6 @@ function loadDatabase(base64String) {
 function removeDatabase() {
   localStorage.removeItem('groceriesList');
   initDatabase();
-}
-
-function testtingCallback(stuff, callback) {
-  console.log(stuff);
-  callback("shakemyfuckinghead");
 }
 
 function updateSyncDate(date, callback) {

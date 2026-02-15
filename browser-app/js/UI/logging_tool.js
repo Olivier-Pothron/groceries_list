@@ -1,5 +1,7 @@
 console.log("'logging_tool.js' loaded");
 
+const logContainer = document.getElementById("log-container");
+
 const userLog = (message, type) => {                                            // logs message to the UI
 
   let logColor = {
