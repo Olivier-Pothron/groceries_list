@@ -39,7 +39,7 @@ addNewItemForm.addEventListener("submit", (event) => {
     shakeIt();
     showValidationIcon(formItemName, isItemNameValid);
     showValidationIcon(categorySelector, isCategoryValid);
-    validationFeedback.textContent = validationText(itemValidation, categoryValidation);
+    setValidationFeedback(validationText(itemValidation, categoryValidation));
     return;
   }
 
@@ -131,7 +131,7 @@ const processFormSubmission = (itemName, categoryId, categoryName, categoryType)
 const handleCustomCategory = (customCategoryName, callback) => {
   const categoryUUID = crypto.randomUUID();
   console.log("handleCategoryAddition: ", customCategoryName, categoryUUID);
-  addCategory(customCategoryName, categoryUUID, function(error, categoryId) {
+  addCategory(customCategoryName, categoryUUID, function(error, success) {
     if(error) {
       if (error.message.includes("UNIQUE constraint failed")) {                 // check if cat already in DB
         userLog(`${customCategoryName} already in database !`, 'warning');
@@ -139,10 +139,10 @@ const handleCustomCategory = (customCategoryName, callback) => {
         userLog("Error adding category!", 'error');
       }
       return;
-    } else if (categoryId) {
-      userLog(`Category '${customCategoryName}' added with ID '${categoryId}'`, 'success');
-      addCategoryToSelector(customCategoryName, categoryId);
-      callback(categoryId);
+    } else if (success) {
+      userLog(`Category '${customCategoryName}' added with ID '${categoryUUID}'`, 'success');
+      addCategoryToSelector(customCategoryName, categoryUUID);
+      callback(categoryUUID);
     }
   });
 }
@@ -168,16 +168,16 @@ const handleGroceryAddition = (itemName, categoryId, categoryName, callback) => 
       callback(groceryObject);
       userLog(`'${groceryObject.name}' added to '${groceryObject.category}'`, 'success');
     }
-  })
+  });
 }
 
 // UI HELPERS FUNCTIONS
 function shakeIt() {
 
   modalContent.classList.add("shake");
-      modalContent.addEventListener("animationend", () => {
-        modalContent.classList.remove("shake");
-      }, { once: true });
+    modalContent.addEventListener("animationend", () => {
+      modalContent.classList.remove("shake");
+    }, { once: true });
 }
 
 const showValidationIcon = (field, isValid) => {
@@ -206,18 +206,22 @@ const validationText = (itemValidation, categoryValidation) => {
   return messages.join(" ");
 }
 
+function setValidationFeedback ( message ) {
+  validationFeedback.textContent = message;
+}
+
 //Resets form fields and icons on modal display change
 window.addEventListener("hashchange", () => {
   hideValidationIcon(categorySelector);
   hideValidationIcon(formItemName);
   addNewItemForm.reset();
   categorySelector.selectedIndex = 0;
-  validationFeedback.textContent = "";
+  setValidationFeedback("");
 });
 
 //Shows or hides custom category input field
 categorySelector.addEventListener("change", () => {
-  selectedOption = categorySelector.value;
+  const selectedOption = categorySelector.value;
 
   if (selectedOption === "custom") {
     customCategoryInput.style.display = "inline";

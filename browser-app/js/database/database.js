@@ -151,7 +151,7 @@ function addGrocery(name, catId, groceryUUID, callback) {
       console.log("No category specified for the grocery.");
     }
 
-    if (callback) callback(null, "yes");
+    if (callback) callback(null, groceryUUID);
   } catch (error) {
     console.error("Error adding grocery", error);
     if (callback) callback(error, null);
