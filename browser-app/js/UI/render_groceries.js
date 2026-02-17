@@ -34,6 +34,7 @@ function renderGroceriesList(arrayOfGroceries) {
   }
 }
 
+// might need to refactor/rename function below. Causes confusion in modal_form.
 function createCategoryElement(categoryName, groceriesArray) {
   const categoryElement = document.createElement("li");
   categoryElement.classList.add("category-element");
@@ -149,6 +150,3 @@ function addCategoryToSelector(newCategory, newCategoryId) {
 
   categorySelector.add(newSelectorOption, categorySelector.options.length - 1);
 }
-
-// EVENTS //
-

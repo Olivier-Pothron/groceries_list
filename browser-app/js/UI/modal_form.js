@@ -44,8 +44,6 @@ addNewItemForm.addEventListener("submit", (event) => {
   }
 
   processFormSubmission(itemName, categoryId, categoryName, categoryType);
-
-  window.location.hash = ''; //close the modal
 });
 
 
@@ -108,9 +106,10 @@ const processFormSubmission = (itemName, categoryId, categoryName, categoryType)
   if (categoryType === 'custom') {
     handleCustomCategory(categoryName, (newCategoryId) => {
       handleGroceryAddition(itemName, newCategoryId, categoryName, (groceryObject) => {
-        const newCategory = createCategoryElement(categoryName, [groceryObject]);
+        const newCategory = createCategoryElement(categoryName, [groceryObject]); // also add the new grocery element
         allGroceriesList.appendChild(newCategory);
         console.log("%cSubmission completed!", 'color: green;');
+        window.location.hash = ''; //close the modal
       });
     });
   } else {
@@ -124,12 +123,15 @@ const processFormSubmission = (itemName, categoryId, categoryName, categoryType)
         existingCategoryList.appendChild(newGrocery);
       }
       console.log("%cSubmission completed!", 'color: green;');
+      window.location.hash = ''; //close the modal
     });
   }
 }
 
 const handleCustomCategory = (customCategoryName, callback) => {
-  addCategory(customCategoryName, function(error, categoryId) {
+  const categoryUUID = crypto.randomUUID();
+  console.log("handleCategoryAddition: ", customCategoryName, categoryUUID);
+  addCategory(customCategoryName, categoryUUID, function(error, categoryId) {
     if(error) {
       if (error.message.includes("UNIQUE constraint failed")) {                 // check if cat already in DB
         userLog(`${customCategoryName} already in database !`, 'warning');
