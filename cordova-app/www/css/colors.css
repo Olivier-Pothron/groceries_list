@@ -1,0 +1,11 @@
+:root {
+  --primary-color: #011638;
+  --secondary-color: #7180AC;
+  --third-color: #C1EEFF;
+  --select-color: #EFBC9B;
+  --message-color: #9AB87A;
+
+  --primary-gradient: linear-gradient(to right, var(--primary-color), rgba(1,22,48, 0.3));
+  --secondary-gradient: linear-gradient(to right, var(--secondary-color), rgba(112,128,172, 0.3));
+  --third-gradient: linear-gradient(to bottom, var(--third-color), rgba(193,224,255, 0.3));
+}

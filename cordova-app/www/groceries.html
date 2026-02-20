@@ -1,54 +1,83 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <meta charset="utf-8">
-        <meta http-equiv="Content-Security-Policy" content="default-src 'self' data: https://ssl.gstatic.com 'unsafe-eval'; style-src 'self' 'unsafe-inline'; media-src *; img-src 'self' data: content:;connect-src http://localhost:3000;">
-        <meta name="format-detection" content="telephone=no">
-        <meta name="msapplication-tap-highlight" content="no">
-        <meta name="viewport" content="initial-scale=1, width=device-width, viewport-fit=cover">
-        <meta name="color-scheme" content="light dark">
-        <link rel="stylesheet" href="css/groceries.css">
-        <title>Hello World</title>
-    </head>
-    <body>
-        <h1>THIS IS THE LIST OF GROCERIES</h1>
-        <br>
-        <a href="myList.html"><button>My List</button></a>
-        <br>
-        <h2>List container</h2>
-        <div id="all_groceries_list">
-          <ul id="categories_list">
-          </ul>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="css/groceries.css">
+    <link rel="stylesheet" href="css/components/modal.css">
+    <title>Groceries List</title>
+  </head>
+  <body>
+    <div class="container">
+      <header class="sticky">
+        <div class="header-buttons">
+          <a href="myList.html" class="link">My List</a>
+          <h1 class="page-title">THIS IS THE LIST OF GROCERIES</h1>
+          <a href="#modal-1" class="btn" id="show-btn">ADD GROCERY</a>
         </div>
-        <br>
-        <div>
-          <form id="add_item_form">
-            <input  id="new_item_name"
-          type="text"
-          placeholder="grocery..."
-          required>
-          <select name="category" id="category_selector">
-            <option value="no category" disabled selected>Select category</option>
-          </select>
-          <input  type="text"
-          id="custom-option-input"
-          placeholder="enter custom"
-          style="display:none">
-          <button id="custom-validation-button"
-          type="button"
-          style="display:none">validation
-            </button>
-            <button type="submit">Add Item</button>
+      </header>
+      <div id="all-groceries-list">
+        <ul id="categories-list">
+        </ul>
+      </div>
+
+      <button id="update-button">UPDATE LIST</button>
+
+      <button id="local-rem-button">DELETE THE LOCAL DB</button>
+
+      <button id="syncup-button">SYNC UP</button>
+
+      <div id="log-container"></div>
+
+      <!--MODAL-->
+      <div class="modal" id="modal-1">
+        <div class="modal-content" id="modal-content-1">
+          <form class="modal-form" id="add-item-form" novalidate>
+            <div class="modal-header">
+              <h3>ADD A GROCERY</h3>
+              <a href="#" class="btn" id="cl-btn">X</a>
+            </div>
+
+            <div class="modal-body">
+              <div>
+                <input class="input-field"
+                      type="text"
+                      placeholder="Enter grocery name"
+                      id="new-item-name"
+                      required>
+                <span class="validation"></span>
+              </div>
+
+              <hr>
+
+              <div>
+                <select id="category-selector">
+                  <option value="" disabled selected>Select category</option>
+                </select>
+                <input class="input-field"
+                id="custom-category-input"
+                type="text" >
+                <span class="validation"></span>
+              </div>
+            </div>
+
+            <div class="modal-footer">
+              <span id="validation-feedback"></span>
+              <button type="submit" class="btn" id="val-btn">AJOUTER</button>
+            </div>
           </form>
         </div>
-        <button id="update_button">UPDATE THE LIST</button>
-        <div id="log-container">
-          <p class="log">Test text in logging space</p>
-        </div>
-        <script src="js/database/database-init.js"></script>
-        <script src="js/database/database2.js"></script>
-        <script src="js/groceries.js"></script>
-    </body>
+      </div>
+      <!--/MODAL-->
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.6.2/sql-wasm.js"></script>
+    <script src="js/database/database_init.js"></script>
+    <script src="js/database/database.js"></script>
+    <script src="js/UI/logging_tool.js"></script>
+    <script src="js/UI/modal_form.js"></script>
+    <script src="js/UI/db_interactions.js"></script>
+    <script src="js/UI/render_groceries.js"></script>
+    <script src="js/UI/events.js"></script>
+  </body>
 </html>
-
-
