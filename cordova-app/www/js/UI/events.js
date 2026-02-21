@@ -1,13 +1,5 @@
 console.log("'events.js' loaded.");
 
-window.addEventListener('load', () => {
-
-});
-
-window.addEventListener('beforeunload', () => {
-  saveDatabase(db);
-});
-
 // DATABASE STORING AND RETRIEVING
 localRemButt.addEventListener("click", () => {
   removeDatabase();
@@ -23,10 +15,23 @@ syncupButt.addEventListener("click", () => {
 // RENDERS GROCERIES LIST AND CATEGORY SELECTOR OPTIONS
 document.addEventListener("databaseReady", () => {
   console.log("%cDatabaseReady Event fired", 'color: green;');
-  const groceriesArray = loadGroceriesFromDB();
-  const categoriesArray = loadCategoriesFromDB();
-  renderGroceriesList(groceriesArray);
-  renderCategorySelectorOptions(categoriesArray);
+  loadGroceriesFromDB( (error, groceries) => {
+    if(error) {
+      console.error("Error fetching groceries.");
+      return;
+    }
+
+    renderGroceriesList(groceries);
+  });
+
+  loadCategoriesFromDB( (error, categories) => {
+    if(error) {
+      console.error("Error fetching categories.");
+      return;
+    }
+
+    renderCategorySelectorOptions(categories);
+  });
 });
 
 allGroceriesList.addEventListener("click", (event) => {
@@ -55,8 +60,21 @@ allGroceriesList.addEventListener("click", (event) => {
 // REFRESH LIST BUTTON
 updateButton.addEventListener("click", () => {
   console.log("Refreshing...");
-  const groceriesArray = loadGroceriesFromDB();
-  const categoriesArray = loadCategoriesFromDB();
-  renderGroceriesList(groceriesArray);
-  renderCategorySelectorOptions(categoriesArray);
+  loadGroceriesFromDB( (error, groceries) => {
+    if(error) {
+      console.error("Error fetching groceries.");
+      return;
+    }
+
+    renderGroceriesList(groceries);
+  });
+
+  loadCategoriesFromDB( (error, categories) => {
+    if(error) {
+      console.error("Error fetching categories.");
+      return;
+    }
+
+    renderCategorySelectorOptions(categories);
+  });
 });

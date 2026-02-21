@@ -1,3 +1,5 @@
+console.log("'database.js' loaded.");
+
 // CRUD STUFF
 
 // - CATEGORIES
@@ -11,7 +13,7 @@ function getCategories(callback) {
       for (let i = 0; i < resultSet.rows.length ; i++ ) {
         let category = resultSet.rows.item(i);
         categoriesArray.push({
-          ID: category.id,
+          id: category.id,
           name: category.name
         });
       }
@@ -154,28 +156,28 @@ function addGrocery (name, categoryId, groceryUUID, callback) {
               console.log(`%c"${name}" added to category "${category_name}"`,
                 'color: purple;');
 
-              if (callback) callback(null, groceryResult.insertId);
+              callback(null, groceryResult.insertId);
             } else {                                                            // no match between id and a category
               console.log('%cNo category found for that ID : ',
                 'color: yellow;' + categoryId);
 
-              if (callback) callback(new Error("No category found for that ID."), null);
+              callback(new Error("No category found for that ID."), null);
             }
             }, function(tx, error) {
               console.error('Error fetching category name : ' + error.message);
 
-              if (callback) callback(error, null);
+              callback(error, null);
           });
         } else {
           console.log('%cNo category specified for this item.',
             'color: violet;');
 
-          if (callback) callback(null, groceryResult.insertId);
+          callback(null, groceryResult.insertId);
         }
       }, function onInsertError(tx, error) {
         console.error(`Insert ERROR! ${error.message}`);
 
-        if (callback) callback(error, null);
+        callback(error, null);
       }
     );
   }, function onTransactionError(error) {

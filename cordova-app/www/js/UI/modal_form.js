@@ -162,7 +162,7 @@ const handleGroceryAddition = (itemName, categoryId, categoryName, callback) => 
       const groceryObject = {
         id: groceryUUID,
         name: itemName,
-        category: categoryName || "No category",
+        category: categoryName || "no category",
         isdirty: 1
       };
       callback(groceryObject);

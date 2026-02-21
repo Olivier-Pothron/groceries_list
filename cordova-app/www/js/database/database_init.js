@@ -1,9 +1,10 @@
+console.log("'database_init.js' loaded.");
+
 var db = null;
 
 document.addEventListener('deviceready', onDeviceReady, false);
 
 function onDeviceReady() {
-
   db = window.sqlitePlugin.openDatabase({ name: 'groceries.db', location: 'default' });
   initializeDatabase();
 }

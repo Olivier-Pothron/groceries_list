@@ -1,34 +1,33 @@
 console.log("'db_interactions.js' loaded.");
 
-function loadGroceriesFromDB() {
+function loadGroceriesFromDB(callback) {
   let groceriesArray = [];
 
   getGroceries(function(error, groceries) {                                     // getting all columns for groceries
     if (error) {
       userLog("ERROR FETCHING GROCERIES", 'error');
+      callback(error, null);
     } else if (groceries) {
       userLog("SUCCESS FETCHING GROCERIES FROM DB!", 'success');
-
-      groceriesArray =  groceries;
-      // console.log("Db interactions Groceries array: ", groceries);
+      callback(null, groceries);
+      console.log("Db interactions Groceries array: ", groceries);
     }
   });
-  return groceriesArray;
 }
 
-function loadCategoriesFromDB() {
+function loadCategoriesFromDB(callback) {
   let categoriesObject = {};
 
   getCategories(function(error, categories) {
     if (error) {
       userLog("ERROR FETCHING CATEGORIES", 'error');
+      callback(error, null)
     } else if (categories) {
       userLog("SUCCESS FETCHING CATEGORIES FROM DB!", 'success');
-      // console.log("Db interactions Categories array: ", categories)
-      categoriesObject = categories;
+      callback(null, categories);
+      console.log("Db interactions Categories array: ", categories)
     }
   });
-  return categoriesObject;
 }
 
 function toggleToBeBoughtInDB(itemId, groceryElement, callback) {
