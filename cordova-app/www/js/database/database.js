@@ -113,7 +113,7 @@ function getGroceries(callback) {
           groceriesArray.push({                                                 // into an array to send to the UI
             id: grocery.id,                                                     // or display in the console
             name: grocery.name,                                                 // more efficiently
-            category: grocery.category || "no category",
+            category: grocery.category,
             toBeBought: grocery.to_be_bought,
             categoryId: grocery.category_id,
             isDirty: grocery.is_dirty
