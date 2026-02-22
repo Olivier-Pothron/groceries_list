@@ -25,9 +25,9 @@ function getCategories(callback) {
       callback(error, null);
     });
   }, function onTransactionError(error) {
-    console.error('Get categories transaction ERROR: ' + error.message);
+    console.error('Transaction ERROR: ' + error.message);
   }, function onTransactionSuccess() {
-    console.log('%cGet categories transaction SUCCESS!',
+    console.log('%cTransaction SUCCESS!',
       'color: green; font_weight: bold;');
   });
 }
@@ -49,9 +49,10 @@ function addCategory (name, categoryUUID, callback) {
       }
     );
   }, function onTransactionError(error) {
-    console.error("Category Addition error" + error.message);
+    console.error("Transaction ERROR" + error.message);
   }, function onTransactionSuccess() {
-    console.log("Category Addition Success");
+    console.log('%cTransaction SUCCESS!',
+      'color: green; font_weight: bold;');
   });
 }
 
@@ -81,9 +82,9 @@ function deleteCategory (id) {
       }
     );
   }, function onTransactionError(error) {
-    console.error('Deleting category ERROR: ' + error.message);
+    console.error('Transaction ERROR: ' + error.message);
   }, function onTransactionSuccess() {
-    console.log('%cDeleting category SUCCESS!',
+    console.log('%cTransaction SUCCESS!',
       'color: green; font_weight: bold;');
   });
 }
@@ -126,9 +127,9 @@ function getGroceries(callback) {
       }
     );
   }, function onTransactionError(error) {
-    console.error('Get groceries ERROR: ' + error.message);
+    console.error('Transaction ERROR: ' + error.message);
   }, function onTransactionSuccess() {
-    console.log('%cGet groceries transaction SUCCESS!',
+    console.log('%cTransaction SUCCESS!',
       'color: green; font_weight: bold;');
   });
 }
@@ -181,9 +182,9 @@ function addGrocery (name, categoryId, groceryUUID, callback) {
       }
     );
   }, function onTransactionError(error) {
-    console.error(`Adding grocery transaction ERROR! ${error.message}`);
+    console.error(`Transaction ERROR: ${error.message}`);
   }, function onTransactionSuccess() {
-    console.log('%cAdding grocery transaction SUCCESS!',
+    console.log('%cTransaction SUCCESS!',
       'color: green; font_weight: bold;');
   });
 }
@@ -250,9 +251,9 @@ function toggleToBeBought (id, callback) {
       console.error('ERROR finding data : ' + error.message);
     });
   }, function onTransactionError(error) {
-    console.error('Updating groceries ERROR: ' + error.message);
+    console.error('Transaction error: ' + error.message);
   }, function onTransactionSuccess() {
-    console.log('%cUpdating groceries SUCCESS!',
+    console.log('%cTransaction success!',
       'color: green; font_weight: bold;');
   });
 }

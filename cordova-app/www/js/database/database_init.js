@@ -6,6 +6,7 @@ document.addEventListener('deviceready', onDeviceReady, false);
 
 function onDeviceReady() {
   db = window.sqlitePlugin.openDatabase({ name: 'groceries.db', location: 'default' });
+  console.log('%cSQLite DB opened.', 'color: green; font_weight: bold;');
   initializeDatabase();
 }
 
@@ -13,11 +14,20 @@ function onDeviceReady() {
 function initializeDatabase() {
 
   db.transaction(function(tx) {
-    dropTables(tx);
-    createTables(tx);
-    seedCategories(tx);
-    seedGroceries(tx);
-    seedSyncMeta(tx);
+    tx.executeSql("SELECT name FROM sqlite_master WHERE type ='table'", [],
+      function(tx, result) {
+        if (result.rows.length === 0) {
+          console.log('%cNo table found. Initialize.', 'color: blue;');
+          dropTables(tx);
+          createTables(tx);
+          seedCategories(tx);
+          seedGroceries(tx);
+          seedSyncMeta(tx);
+        } else {
+          console.log('%cTables already present. Not initializing.', 'color: green;');
+        }
+      }
+    );
   }, function onTransactionError(error) {
     console.error('Initialization ERROR: ' + error.message);
   }, function onTransactionSuccess() {
@@ -135,8 +145,6 @@ function seedCategories(tx) {
         console.error(`Insert ERROR! Code: ${error.message}`);
       });
   }
-
-  console.log("Categories seeded.");
 }
 
 function seedGroceries(tx) {
@@ -146,13 +154,13 @@ function seedGroceries(tx) {
     { name: 'shampooing', category: 'droguerie parfumerie hygiène', to_be_bought: 1 },
     { name: 'frites', category: 'surgelés', to_be_bought: 1 },
     { name: 'haricots verts', category: 'surgelés', to_be_bought: 1 },
-    { name: 'champignons', category: 'surgelés', to_be_bought: 1 },
+    { name: 'champignons', category: 'surgelés', to_be_bought: 0 },
     { name: 'magnums', category: 'surgelés', to_be_bought: 1 },
     { name: 'pommes de terre salardaises', category: 'surgelés', to_be_bought: 1 },
-    { name: 'moutarde', category: 'épicerie salée', to_be_bought: 1 },
+    { name: 'moutarde', category: 'épicerie salée', to_be_bought: 0 },
     { name: 'mayonnaise', category: 'épicerie salée', to_be_bought: 1 },
-    { name: 'sauce algérienne', category: 'épicerie salée', to_be_bought: 1 },
-    { name: 'sauce tartare', category: 'épicerie salée', to_be_bought: 1 },
+    { name: 'sauce algérienne', category: 'épicerie salée', to_be_bought: 0 },
+    { name: 'sauce tartare', category: 'épicerie salée', to_be_bought: 0 },
     { name: 'sauce au poivre', category: 'épicerie salée', to_be_bought: 1 },
     { name: 'lait', category: 'crèmerie', to_be_bought: 1 },
     { name: "jus d'orange", category: 'liquides', to_be_bought: 1 },
@@ -195,13 +203,33 @@ function seedGroceries(tx) {
 
   // DROPPING THE VIEW
   tx.executeSql('DROP VIEW grocery_view');
-
-  console.log("Groceries seeded.")
 }
 
 function seedSyncMeta(tx) {
   tx.executeSql(`INSERT OR IGNORE INTO sync_meta (key, value)
     VALUES ('last_sync', '1970-01-01T00:00:00Z')
     `);
-  console.log("Sync initialized.")
+}
+
+function initializeTables() {
+  db.transaction(function(tx) {
+    dropTables(tx);
+    createTables(tx);
+  }, function onTransactionError(error) {
+    console.error('Tables initialization ERROR: ' + error.message);
+  }, function onTransactionSuccess() {
+    console.log('%cTables initialization SUCCESS!', 'color: blue; font_weight: bold;');
+  });
+}
+
+function seedAllTables() {
+  db.transaction(function(tx) {
+    seedCategories(tx);
+    seedGroceries(tx);
+    seedSyncMeta(tx);
+  }, function onTransactionError(error) {
+    console.error('Tables seeding ERROR: ' + error.message);
+  }, function onTransactionSuccess() {
+    console.log('%cTables seeding SUCCESS!', 'color: blue; font_weight: bold;');
+  });
 }

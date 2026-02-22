@@ -90,8 +90,16 @@ function emptyListCheck() {
 
 // ON DATABASEREADY
 document.addEventListener("databaseReady", () => {
-  const groceriesArray = loadGroceriesFromDB();
-  renderMyGroceriesList(groceriesArray);
+  console.log("%cDatabaseReady Event fired", 'color: green;');
+  
+  loadGroceriesFromDB( (error, groceries) => {
+    if(error) {
+      console.error("Error fetching groceries.");
+      return;
+    }
+
+    renderMyGroceriesList(groceries);
+  });
 });
 
 // DATABASE STORING AND RETRIEVING

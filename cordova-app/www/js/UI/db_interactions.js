@@ -1,7 +1,6 @@
 console.log("'db_interactions.js' loaded.");
 
 function loadGroceriesFromDB(callback) {
-  let groceriesArray = [];
 
   getGroceries(function(error, groceries) {                                     // getting all columns for groceries
     if (error) {
@@ -10,22 +9,21 @@ function loadGroceriesFromDB(callback) {
     } else if (groceries) {
       userLog("SUCCESS FETCHING GROCERIES FROM DB!", 'success');
       callback(null, groceries);
-      console.log("Db interactions Groceries array: ", groceries);
+      // console.log("Db interactions Groceries array: ", groceries);
     }
   });
 }
 
 function loadCategoriesFromDB(callback) {
-  let categoriesObject = {};
 
   getCategories(function(error, categories) {
     if (error) {
       userLog("ERROR FETCHING CATEGORIES", 'error');
-      callback(error, null)
+      callback(error, null);
     } else if (categories) {
       userLog("SUCCESS FETCHING CATEGORIES FROM DB!", 'success');
       callback(null, categories);
-      console.log("Db interactions Categories array: ", categories)
+      // console.log("Db interactions Categories array: ", categories)
     }
   });
 }
@@ -37,13 +35,13 @@ function toggleToBeBoughtInDB(itemId, groceryElement, callback) {
   toggleToBeBought (itemId, function(error, newState) {
     if (error) {
       userLog("ERROR CHANGING STATE!", 'error');
+      callback(error, null);
     } else if (newState) {
       userLog(`${groceryName} updated to ${newState}`, 'success');
-      if (callback) callback(groceryElement);
+      callback(groceryElement);
     }
   });
 }
-
 
 // DATABASE SYNCING
 
