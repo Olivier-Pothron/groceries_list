@@ -36,18 +36,18 @@ async function initDatabase() {
 function createTables() {
   // CATEGORY TABLE
   db.run(`CREATE TABLE IF NOT EXISTS category (
-    -- id INTEGER PRIMARY KEY AUTOINCREMENT,
-    id TEXT PRIMARY KEY,
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL,
     is_dirty INTEGER DEFAULT 0,
+    uuid TEXT UNIQUE,
     UNIQUE(name));
     `);
   db.run(`CREATE TRIGGER IF NOT EXISTS category_auto_uuid
     AFTER INSERT
     ON category
-    WHEN NEW.id IS NULL
+    WHEN NEW.uuid IS NULL
     BEGIN
-      UPDATE category SET id = (
+      UPDATE category SET uuid = (
         lower(hex(randomblob(4))) || '-' ||
         lower(hex(randomblob(2))) || '-4' ||
         substr(lower(hex(randomblob(2))), 2) || '-' ||
@@ -61,12 +61,12 @@ function createTables() {
 
   // GROCERY TABLE
   db.run(`CREATE TABLE IF NOT EXISTS grocery (
-    -- id INTEGER PRIMARY KEY AUTOINCREMENT,
-    id TEXT PRIMARY KEY,
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL,
     category_id INTEGER,
     to_be_bought INTEGER DEFAULT 0,
     is_dirty INTEGER DEFAULT 0,
+    uuid TEXT UNIQUE,
     FOREIGN KEY (category_id) REFERENCES category(id),
     UNIQUE(name, category_id) );
     `);
@@ -74,9 +74,9 @@ function createTables() {
   db.run(`CREATE TRIGGER IF NOT EXISTS grocery_auto_uuid
     AFTER INSERT
     ON grocery
-    WHEN NEW.id IS NULL
+    WHEN NEW.uuid IS NULL
     BEGIN
-      UPDATE grocery SET id = (
+      UPDATE grocery SET uuid = (
         lower(hex(randomblob(4))) || '-' ||
         lower(hex(randomblob(2))) || '-4' ||
         substr(lower(hex(randomblob(2))), 2) || '-' ||

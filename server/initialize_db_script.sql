@@ -6,7 +6,7 @@ DROP TABLE IF EXISTS category;
 CREATE TABLE category (
 	id CHAR(36) PRIMARY KEY DEFAULT (UUID()),
 	name VARCHAR(255) UNIQUE NOT NULL,
-  last_modified TIMESTAMP
+  last_modified TIMESTAMP -- TIMESTAMP IS NOT DOING ANYTHING AUTOMATICALLY AS IS
 );
 
 CREATE TABLE grocery (
@@ -14,7 +14,7 @@ CREATE TABLE grocery (
 	name VARCHAR(255) NOT NULL,
 	category_id CHAR(36),
 	to_be_bought TINYINT(1) DEFAULT 0,
-  last_modified TIMESTAMP,
+  last_modified TIMESTAMP, -- TIMESTAMP IS NOT DOING ANYTHING AUTOMATICALLY AS IS
 	FOREIGN KEY (category_id) REFERENCES category(id),
 	UNIQUE (name, category_id)
 );

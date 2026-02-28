@@ -1,7 +1,8 @@
 CORDOVA APP
 
-- create initialize db js file
-- segregate events ?
+[x] App is working on phone and browser
+[ ] Feedback 'grocery already present' in modal ?
+[ ] Make sure newly added grocery displays in categorie list.
 
 BROWSER CLIENT ::
 
@@ -13,6 +14,9 @@ BROWSER CLIENT ::
 
 SERVER :
 
+- /!\ WATCH OUT /!\ ! On server side, grocery with no category has
+category_id === -1, whereas on client, category_id === null.
+Should convert when grocery with category_id === -1 get sent to client ?
 - <> server renders ejs file
 - <!>for now 030325, server relies on client js file to handle
 custom category.

@@ -89,8 +89,8 @@ function createGroceryElement(grocery) {
   groceryName.textContent = grocery.name;
   groceryName.classList.add("grocery-text");
 
-  const groceryCategory = document.createElement("div");                        // the handling of "no cat" product is
-  groceryCategory.textContent = grocery.category || "No category";              // on the database side
+  const groceryCategory = document.createElement("div");
+  groceryCategory.textContent = grocery.category || "No category";
   groceryCategory.classList.add("category-text");
 
   // ASSEMBLING THE GROCERY
@@ -150,3 +150,73 @@ function addCategoryToSelector(newCategory, newCategoryId) {
 
   categorySelector.add(newSelectorOption, categorySelector.options.length - 1);
 }
+
+// ON DATABASE LOADED
+// RENDERS GROCERIES LIST AND CATEGORY SELECTOR OPTIONS
+document.addEventListener("databaseReady", () => {
+  console.log("%cDatabaseReady Event fired", 'color: green;');
+
+  loadGroceriesFromDB( (error, groceries) => {
+    if(error) {
+      console.error("Error fetching groceries.");
+      return;
+    }
+
+    renderGroceriesList(groceries);
+  });
+
+  loadCategoriesFromDB( (error, categories) => {
+    if(error) {
+      console.error("Error fetching categories.");
+      return;
+    }
+
+    renderCategorySelectorOptions(categories);
+  });
+});
+
+allGroceriesList.addEventListener("click", (event) => {
+  const categoryHeader = event.target.closest(".category-header");              // get clicked category list
+  const groceryElement = event.target.closest(".grocery-element");              // get clicked grocery
+
+  // TOGGLING GROCERY TO_BE_BOUGHT STATE
+  if (groceryElement) {
+    const groceryId = groceryElement.dataset.groceryId;
+
+    toggleToBeBoughtInDB(groceryId, groceryElement, (groceryElement) => {
+      groceryElement.classList.toggle("to-be-bought");
+    });
+  }
+
+  // TOGGLING DISPLAY OF CATEGORY LIST
+  if (categoryHeader) {
+    // Listen for the transitionstart event
+    const groceriesList = categoryHeader.nextElementSibling;
+
+    const categoryButton = categoryHeader.lastChild;
+    groceriesDropDown(groceriesList, categoryButton);
+  }
+});
+
+// REFRESH LIST BUTTON
+updateButton.addEventListener("click", () => {
+  console.log("%cDatabaseReady Event fired", 'color: green;');
+  console.log("Refreshing...");
+  loadGroceriesFromDB( (error, groceries) => {
+    if(error) {
+      console.error("Error fetching groceries.");
+      return;
+    }
+
+    renderGroceriesList(groceries);
+  });
+
+  loadCategoriesFromDB( (error, categories) => {
+    if(error) {
+      console.error("Error fetching categories.");
+      return;
+    }
+
+    renderCategorySelectorOptions(categories);
+  });
+});

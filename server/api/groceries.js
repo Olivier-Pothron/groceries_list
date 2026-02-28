@@ -21,6 +21,7 @@ router.get("/", (req, res, next) => {
 
 // ADD GROCERY
 router.post("/", (req, res) => {
+
   //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   // <!> BELOW IS FOR HANDLING WITHOUT JAVASCRIPT <!>
   // const contentType = req.headers['content-type'];
@@ -167,23 +168,6 @@ router.put("/:id", (req, res) => {
       console.log(`Item #${id} / To be bought : ${toBeBought}`);
       res.status(200).json({ success: true });
     });
-  });
-});
-
-
-// TEST :
-
-router.post('/sync', (req, res) => {
-
-});
-
-router.post("/testPost", (req, res) => {
-  console.log(req.body);
-
-  res.status(200).json({
-    message: "Groceries received",
-    length: req.length,
-    groceries: req.body
   });
 });
 

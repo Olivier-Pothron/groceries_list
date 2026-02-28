@@ -131,7 +131,7 @@ const processFormSubmission = (itemName, categoryId, categoryName, categoryType)
 const handleCustomCategory = (customCategoryName, callback) => {
   const categoryUUID = crypto.randomUUID();
   console.log("handleCategoryAddition: ", customCategoryName, categoryUUID);
-  addCategory(customCategoryName, categoryUUID, function(error, success) {
+  addCategory(customCategoryName, categoryUUID, function(error, newId) {
     if(error) {
       if (error.message.includes("UNIQUE constraint failed")) {                 // check if cat already in DB
         userLog(`${customCategoryName} already in database !`, 'warning');
@@ -139,10 +139,10 @@ const handleCustomCategory = (customCategoryName, callback) => {
         userLog("Error adding category!", 'error');
       }
       return;
-    } else if (success) {
-      userLog(`Category '${customCategoryName}' added with ID '${categoryUUID}'`, 'success');
-      addCategoryToSelector(customCategoryName, categoryUUID);
-      callback(categoryUUID);
+    } else if (newId) {
+      userLog(`Category '${customCategoryName}' added with ID '${newId}'`, 'success');
+      addCategoryToSelector(customCategoryName, newId);
+      callback(newId);
     }
   });
 }
@@ -150,7 +150,7 @@ const handleCustomCategory = (customCategoryName, callback) => {
 const handleGroceryAddition = (itemName, categoryId, categoryName, callback) => {
   const groceryUUID = crypto.randomUUID();
   console.log("handleGroceryAddition: ", itemName, categoryId, groceryUUID);
-  addGrocery(itemName, categoryId, groceryUUID, function(error, success) {
+  addGrocery(itemName, categoryId, groceryUUID, function(error, newId) {
     if(error) {
       if (error.message.includes("UNIQUE constraint failed")) {                 // check if item in cat already in db
         userLog(`${itemName} already in database with category ${categoryName}.`, 'warning');
@@ -158,9 +158,9 @@ const handleGroceryAddition = (itemName, categoryId, categoryName, callback) => 
         userLog("Error adding grocery!", 'error');
       }
       return;
-    } else if (success) {
+    } else if (newId) {
       const groceryObject = {
-        id: groceryUUID,
+        id: newId,
         name: itemName,
         category: categoryName || "No category",
         isdirty: 1

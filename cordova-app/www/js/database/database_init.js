@@ -117,7 +117,6 @@ function createTables(tx) {
   console.log("'sync_meta' table created");
 
   console.log('%c### All tables created ###', 'color: blue;');
-
 }
 
 // SEEDING TABLES

@@ -10,7 +10,7 @@ const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
 
 const categoriesRoutes = require('./api/categories');
 const groceriesRoutes = require('./api/groceries');
-// const syncRoutes = require('./api/sync');
+const syncRoutes = require('./api/sync');
 
 const app = express();
 
@@ -40,7 +40,7 @@ app.use((req, res, next) => {
 // API routes
 app.use('/api/categories', categoriesRoutes);
 app.use('/api/groceries', groceriesRoutes);
-// app.use('/api/sync', syncRoutes);
+app.use('/api/sync', syncRoutes);
 
 app.set("view engine", "ejs"); // Set EJS as the templating engine
 

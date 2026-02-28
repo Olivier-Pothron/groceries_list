@@ -28,18 +28,20 @@ function getCategories(callback) {
 function addCategory(name, categoryUUID, callback) {
   try {
     const insertQuery = `
-      INSERT INTO category (name, id)
-      VALUES (?, ?);
+      INSERT INTO category (name, uuid, is_dirty)
+      VALUES (?, ?, ?);
       `;
     const insertStmt = db.prepare(insertQuery);
-    insertStmt.bind([name, categoryUUID]);
+    insertStmt.bind([name, categoryUUID, 1]);
     insertStmt.step();
     insertStmt.free();
+    const idResult = db.exec("SELECT last_insert_rowid();");
+    const newId = idResult[0].values[0][0];
 
-    console.log(`%cAdded "${name}" to categories list with insertId ${categoryUUID}`,
+    console.log(`%cAdded "${name}" to categories list with insertId ${newId}`,
       'color: green;');
 
-    if (callback) callback(null, categoryUUID);
+    if (callback) callback(null, newId);
 
     } catch (error) {
     console.error("Error adding category", error);
@@ -73,6 +75,35 @@ function deleteCategory(id, callback) {
     console.error("Error deleting category.", error);
 
     if (callback) callback(error, null);
+  }
+}
+
+function updateCategoriesUuid(uuidMap, callback) {
+  try {
+    for ( let clientUuid in uuidMap ) {
+      const serverUuid = uuidMap[clientUuid];
+      
+      const identifyingQuery = "SELECT name FROM category WHERE uuid = ?;";
+      const selectStmt = db.prepare(identifyingQuery);
+      selectStmt.bind([clientUuid]);
+      if (selectStmt.step()) {
+        const category = selectStmt.getAsObject();
+        const categoryName = category.name;
+
+        const updateQuery = "UPDATE category SET uuid = ? WHERE uuid = ?;";
+        const updateStmt = db.prepare(updateQuery);
+        updateStmt.bind([serverUuid, clientUuid]);
+        updateStmt.run();
+        updateStmt.free();
+
+        console.log(`%cCategory "${categoryName}" uuid updated.`,
+          'color: green;');
+      }
+    }
+  callback(null, true);
+  } catch (error) {
+  console.error("Error updating category.", error);
+  callback(error, null);
   }
 }
 
@@ -121,15 +152,17 @@ function addGrocery(name, catId, groceryUUID, callback) {
   try {
     let categoryName = null;
     const insertQuery = `
-      INSERT INTO grocery (name, category_id, id, is_dirty)
+      INSERT INTO grocery (name, category_id, uuid, is_dirty)
       VALUES (?, ?, ?, ?);
       `;
     const insertStmt = db.prepare(insertQuery);
     insertStmt.bind([name, catId || null, groceryUUID || null, 1]);
     insertStmt.step();
     insertStmt.free();
+    const idResult = db.exec("SELECT last_insert_rowid();");
+    const newId = idResult[0].values[0][0];
 
-    console.log(`%cAdded "${name}" to groceries with id "${groceryUUID}`,
+    console.log(`%cAdded "${name}" to groceries with id "${newId}"`,
       'color: green;');
 
     if(catId) {
@@ -144,14 +177,14 @@ function addGrocery(name, catId, groceryUUID, callback) {
           'color: green;');
       } else {
         console.log('%cNo category found for that ID : ',
-          'color: violet;' + catId);
+          'color: yellow;' + catId);
       }
       categoryStmt.free();
     } else {
-      console.log("No category specified for the grocery.");
+      console.log('%cNo category specified for the grocery.', 'color: violet;');
     }
 
-    if (callback) callback(null, groceryUUID);
+    if (callback) callback(null, newId);
   } catch (error) {
     console.error("Error adding grocery", error);
     if (callback) callback(error, null);
@@ -206,7 +239,9 @@ function toggleToBeBought(id, callback) {
       const newState = currentState === 0 ? 1 : 0;
       const updatedStateString = newState === 0 ? "Not to be bought" : "To be bought";
 
-      const updateQuery = "UPDATE grocery SET to_be_bought = ? WHERE id = ?;";
+      const updateQuery = `UPDATE grocery
+      SET to_be_bought = ?, is_dirty = 1
+      WHERE id = ?;`;
       const updateStmt = db.prepare(updateQuery);
       updateStmt.bind([newState, id]);
       updateStmt.run();
@@ -223,6 +258,74 @@ function toggleToBeBought(id, callback) {
     selectStmt.free();
 
   } catch (error) {
+    console.error("Error fetching groceries:", error);
+
+    if (callback) callback(error, null);
+  }
+}
+
+// HANDLING "DIRTY" DATA
+
+function getDirtyCategories(callback) {
+  try {
+    const query = "SELECT * FROM category WHERE is_dirty = 1;"
+    const res = db.exec(query);
+
+    // console.log(res);
+    // console.log(res[0].values);
+
+    let categoriesArray = [];
+
+    if (res.length > 0) {
+      categoriesArray = res[0].values.map (row => ({
+        uuid: row[3],
+        name: row[1]
+      }));
+
+    } else {
+      console.log("No dirty category found.");
+    }
+
+    if (callback) callback(null, categoriesArray);
+  } catch(error) {
+    console.error("Error fetching dirty categories:", error);
+
+    if (callback) callback(error, null);
+  }
+}
+
+function getDirtyGroceries(callback) {
+  try {
+    let query = `
+      SELECT  grocery.id,
+              grocery.name AS name,
+              grocery.to_be_bought,
+              grocery.category_id AS category_id,
+              grocery.is_dirty
+      FROM    grocery
+      WHERE   is_dirty = 1
+      `;
+    const res = db.exec(query);
+
+    let groceriesArray = [];
+
+    if (res.length > 0) {
+      groceriesArray = res[0].values.map(row => ({
+        id: row[0],
+        name: row[1],
+        toBeBought: row[2],
+        categoryId: row[3],
+        isDirty: row[4]
+      }));
+
+    } else {
+      console.log("No grocery found.");
+    }
+
+    // console.log("Groceries Array from DB: ", groceriesArray);
+
+    if (callback) callback(null, groceriesArray);
+  } catch(error) {
     console.error("Error fetching groceries:", error);
 
     if (callback) callback(error, null);
@@ -276,7 +379,49 @@ function updateSyncDate(date, callback) {
   callback("Done updating sync date");
 }
 
+/*
 function fetchTheDate(callback) {
+
   const response = db.exec(`SELECT value FROM sync_meta;`);
-  callback(response[0].values[0][0]);
+  console.log("The date :")
+  console.log(`%c${response}`, 'color: orange;');
+  const syncDate = response[0].values[0][0];
+  console.log(response[0].values[0][0]);
+  console.log(typeof(syncDate));
+  callback(syncDate);
 }
+*/
+
+function fetchTheDate(callback) {
+  try {
+      const res = db.exec(`SELECT value FROM sync_meta;`);
+
+      let syncDate = "";
+
+      if (res.length > 0) {
+        syncDate = res[0].values[0][0];
+
+        console.log("Syncd4t3");
+        console.log(syncDate);
+      } else {
+        console.log("No date found.");
+      }
+
+      if (callback) callback(null, syncDate);
+    } catch(error) {
+      console.error("Error fetching d4te:", error);
+
+      if (callback) callback(error, null);
+    }
+}
+
+/*
+stmt.bind([param]);
+stmt.step();
+stmt.free();
+
+//OR//
+
+stmt.run([param]);
+stmt.free();
+*/

@@ -5,14 +5,24 @@ const router = express.Router();
 const mysqlPool = require('../db');
 
 // GET CATEGORIES
-router.get('/', (req, res, next) => {
-  mysqlPool.query('SELECT * FROM category', (err, results, fields) => {
-    if (err) {
-      console.error('Error executing query:', err);
-      return next(err);
-    }
+// router.get('/', (req, res, next) => {
+//   mysqlPool.query('SELECT * FROM category', (err, results, fields) => {
+//     if (err) {
+//       console.error('Error executing query:', err);
+//       return next(err);
+//     }
+//     res.json(results);
+//   });
+// });
+
+router.get('/', async (req, res, next) => {
+  try {
+    const [results] = await mysqlPool.promise().query('SELECT * FROM category');
     res.json(results);
-  });
+  } catch(err) {
+    console.error('Error executing query:', err);
+    next(err);
+  }
 });
 
 // ADD CATEGORY
@@ -84,10 +94,6 @@ router.delete('/:id', (req, res) => {
                 `${formattedRequestTime}`);
     res.status(200).json({ success: true });
   });
-});
-
-router.post('/sync', (req, res) => {
-
 });
 
 // Export the router so it can be used in server.js
