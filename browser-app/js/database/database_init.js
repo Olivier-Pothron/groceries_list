@@ -38,7 +38,7 @@ function createTables() {
   db.run(`CREATE TABLE IF NOT EXISTS category (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL,
-    is_dirty INTEGER DEFAULT 0,
+    is_dirty INTEGER DEFAULT 1,
     uuid TEXT UNIQUE,
     UNIQUE(name));
     `);
@@ -65,7 +65,7 @@ function createTables() {
     name TEXT NOT NULL,
     category_id INTEGER,
     to_be_bought INTEGER DEFAULT 0,
-    is_dirty INTEGER DEFAULT 0,
+    is_dirty INTEGER DEFAULT 1,
     uuid TEXT UNIQUE,
     FOREIGN KEY (category_id) REFERENCES category(id),
     UNIQUE(name, category_id) );
@@ -99,23 +99,23 @@ function createTables() {
 function seedCategories() {
 
   const categories = [
-    { name: 'fruits & légumes' },
-    { name: 'droguerie parfumerie hygiène' },
-    { name: 'surgelés' },
-    { name: 'épicerie salée' },
-    { name: 'épicerie sucrée' },
-    { name: 'crèmerie' },
-    { name: 'liquides' },
-    { name: 'traiteur' },
-    { name: 'bazar' },
-    { name: 'textile' },
-    { name: 'pet' }
+    // { name: 'fruits & légumes' },
+    // { name: 'droguerie parfumerie hygiène' },
+    // { name: 'surgelés' },
+    // { name: 'épicerie salée' },
+    // { name: 'épicerie sucrée' },
+    // { name: 'crèmerie' },
+    { name: 'liquides', uuid: 'c21e8701-0000-4000-8000-bacadac00001' },
+    { name: 'traiteur', uuid: 'c21e8701-0000-4000-8000-bacadac00002' },
+    // { name: 'bazar' },
+    // { name: 'textile' },
+    // { name: 'pet' }
   ];
 
-  const stmt = db.prepare("INSERT INTO category (name) VALUES (?);");
+  const stmt = db.prepare("INSERT INTO category (name, uuid) VALUES (?, ?);");
 
   for (let category of categories) {
-    stmt.run([category.name]);
+    stmt.run([category.name, category.uuid]);
   }
 
   stmt.free();
@@ -125,26 +125,26 @@ function seedCategories() {
 function seedGroceries() {
 
   const groceries = [
-    { name: 'pommes', category: 'fruits & légumes', to_be_bought: 0 },
-    { name: 'shampooing', category: 'droguerie parfumerie hygiène', to_be_bought: 1 },
-    { name: 'frites', category: 'surgelés', to_be_bought: 1 },
-    { name: 'haricots verts', category: 'surgelés', to_be_bought: 1 },
-    { name: 'champignons', category: 'surgelés', to_be_bought: 1 },
-    { name: 'magnums', category: 'surgelés', to_be_bought: 1 },
-    { name: 'pommes de terre salardaises', category: 'surgelés', to_be_bought: 1 },
-    { name: 'moutarde', category: 'épicerie salée', to_be_bought: 1 },
-    { name: 'mayonnaise', category: 'épicerie salée', to_be_bought: 1 },
-    { name: 'sauce algérienne', category: 'épicerie salée', to_be_bought: 1 },
-    { name: 'sauce tartare', category: 'épicerie salée', to_be_bought: 1 },
-    { name: 'sauce au poivre', category: 'épicerie salée', to_be_bought: 1 },
-    { name: 'lait', category: 'crèmerie', to_be_bought: 1 },
-    { name: "jus d'orange", category: 'liquides', to_be_bought: 1 },
-    { name: 'gâteaux', category: 'épicerie sucrée', to_be_bought: 1 },
-    { name: "pavés de saumon", category: 'traiteur', to_be_bought: 1 },
-    { name: "piles", category: 'bazar', to_be_bought: 1 },
-    { name: "drap", category: 'textile', to_be_bought: 1 },
-    { name: "litière", category: 'pet', to_be_bought: 1 },
-    { name: "pâté de sureau", category: null, to_be_bought: 0 }
+    // { name: 'pommes', category: 'fruits & légumes', to_be_bought: 0 },
+    // { name: 'shampooing', category: 'droguerie parfumerie hygiène', to_be_bought: 1 },
+    // { name: 'frites', category: 'surgelés', to_be_bought: 1 },
+    // { name: 'haricots verts', category: 'surgelés', to_be_bought: 1 },
+    // { name: 'champignons', category: 'surgelés', to_be_bought: 1 },
+    // { name: 'magnums', category: 'surgelés', to_be_bought: 1 },
+    // { name: 'pommes de terre salardaises', category: 'surgelés', to_be_bought: 1 },
+    // { name: 'moutarde', category: 'épicerie salée', to_be_bought: 1 },
+    // { name: 'mayonnaise', category: 'épicerie salée', to_be_bought: 1 },
+    // { name: 'sauce algérienne', category: 'épicerie salée', to_be_bought: 1 },
+    // { name: 'sauce tartare', category: 'épicerie salée', to_be_bought: 1 },
+    // { name: 'sauce au poivre', category: 'épicerie salée', to_be_bought: 1 },
+    // { name: 'lait', category: 'crèmerie', to_be_bought: 1 },
+    { name: "jus d'orange", category: 'liquides', to_be_bought: 1, uuid: 'c21e8701-0000-4000-8000-feacab000001' },
+    { name: "pavés de saumon", category: 'traiteur', to_be_bought: 1, uuid: 'c21e8701-0000-4000-8000-feacab000002' },
+    // { name: 'gâteaux', category: 'épicerie sucrée', to_be_bought: 1 },
+    // { name: "piles", category: 'bazar', to_be_bought: 1 },
+    // { name: "drap", category: 'textile', to_be_bought: 1 },
+    // { name: "litière", category: 'pet', to_be_bought: 1 },
+    // { name: "pâté de sureau", category: null, to_be_bought: 0 }
   ];
 
   // CREATING A VIEW TO HANDLE THE ADDITION OF GROCERIES WITH TEXT IN CATEGORY ID
@@ -166,10 +166,11 @@ function seedGroceries() {
     END;
     `)
 
-  const stmt = db.prepare("INSERT INTO grocery_view (name, category_id, to_be_bought) VALUES (?, ?, ?);");
+  const stmt = db.prepare(`INSERT INTO grocery_view (name, category_id, to_be_bought, uuid)
+    VALUES (?, ?, ?, ?);`);
 
   for (let grocery of groceries) {
-    stmt.run([grocery.name, grocery.category, grocery.to_be_bought]);
+    stmt.run([grocery.name, grocery.category, grocery.to_be_bought, grocery.uuid]);
   }
 
   stmt.free();

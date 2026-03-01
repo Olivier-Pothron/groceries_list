@@ -55,7 +55,7 @@ function sendTableData( JSONTable, endpoint, callback ) {
   xhr.onload = function() {
     if (xhr.status == 200) {
       const response = JSON.parse(xhr.responseText);
-      console.log("Server response (sendTableData): ", response);
+      console.log("%cHttp response: ", 'color: blue;', xhr.status);
       callback(null, response);
     } else {
       console.error("Error sending message with status: ", xhr.status);
@@ -65,23 +65,18 @@ function sendTableData( JSONTable, endpoint, callback ) {
 }
 
 function syncCategoriesUp() {
+  console.log("%c\n<:: SYNC CATEGORIES UP REQUEST ::>\n",
+    'color: orange; text-decoration: underline;');
 
   getDirtyCategories( (error, dirtyCategories) => {
     if(error) {
       console.error("Error in fetching dirtyCategories.");
       return;
     }
-    console.log("%cDirty Categories: ", "color: blue;");
-    console.log(dirtyCategories);
+    console.log("%cFetching Dirty Categories: ",
+      'color: brown;', dirtyCategories);
 
-    const syncData = {
-      categories: dirtyCategories
-    }
-
-    const jsonSyncData = JSON.stringify(syncData);
-
-    console.log(jsonSyncData);
-
+    const jsonSyncData = JSON.stringify({categories: dirtyCategories});
     const syncEndPoint = "http://localhost:3000/api/sync/up/categories";
 
     console.log("Sending *categories* xml req.");
@@ -90,72 +85,29 @@ function syncCategoriesUp() {
         console.error("Error sending categories: ", error);
         return;
       }
-      console.log("Server response (syncCategoriesUp): ", response);
+      console.log("%c\n<:: RESPONSE ::>\n",
+        'color: mediumseagreen; text-decoration: underline;', response);
 
-      const {categories, uuidMap} = response.payload;
-
-      console.log("ServerCategories : ");
-      console.log(categories);
-
-      console.log("uuidMap");
-      console.log(uuidMap);
+      const {categories, uuidMap} = response;
 
       updateCategoriesUuid(uuidMap, (error, success) => {
         if (error) {
           console.error("Categories UUIDs update went wrong.", error);
           return;
         }
-        console.log("Categories UUIDs updated to cannonical ones!");
-      });
+        console.log("%cCategories UUIDs updated to cannonical ones!",
+          'color: lightblue');
 
-    });
-  });
-  // 5. On success, clear is_dirty flags
-  // 6. Update last_sync timestamp
-}
-
-/*
-function syncUp() {
-
-  getDirtyCategories( (error, categoriesArray) => {
-    if(error) {
-      console.error("Error in fetching dirtyCategories.");
-      return;
-    }
-    console.log("%cDirty Categories: ", "color: blue;");
-    console.log(categoriesArray);
-
-    getDirtyGroceries( (error, groceriesArray) => {
-      if(error) {
-        console.error("Error fetching dirtyGroceries.");
-        return;
-      }
-      console.log("%cDirty Groceries: ", "color: blue;");
-      console.log(groceriesArray);
-
-      fetchTheDate( (error, lastSync) => {
-        if(error) {
-          console.error("Error fetching the date.");
-          return;
-        }
-        console.log("%cLast Sync Date: ", "color: blue;");
-        console.log(lastSync);
-
-        const syncData = {
-          last_sync: lastSync,
-          categories: categoriesArray,
-          groceries: groceriesArray
-        }
-
-        const jsonSyncData = JSON.stringify(syncData);
-
-        console.log(jsonSyncData);
-
-        const syncEndPoint = "http://localhost:3000/api/sync/up";
-
-        console.log("Sending *categories* xml req.");
-        sendTableData( jsonSyncData, syncEndPoint, (status) => {
-          console.log(status);
+        addCategoriesFromServer(categories, (error, duplicateCategories) => {
+          if(error) {
+            console.error("ERROR ADDING CATEGORIES FROM SERVER!");
+            return;
+          }
+          console.log("%cAlready in DB : ", 'color: grey;', duplicateCategories);
+          console.log("%cCategories from server added to local db!",
+            'color: lime;');
+          console.log("%cCategories after response : ", 'color: pink;',
+            db.exec("SELECT * FROM category;")[0].values);
         });
       });
     });
@@ -164,40 +116,52 @@ function syncUp() {
   // 6. Update last_sync timestamp
 }
 
-function syncDown(callback) {
-  // 1. Get last_sync timestamp
-  // 2. Request changes from server
-  // 3. Insert/update from received records
-  // 4. Update last_sync timestamp
-}
-*/
+function syncGroceriesUp() {
+  console.log("%c\n<:: SYNC GROCERIES UP REQUEST ::>\n",
+    'color: orange; text-decoration: underline;');
 
-/*
-// function first sends categories and then groceries if categories success
-function syncUpDatabase() {
-  const categoriesUrl =  "http://localhost:3000/api/sync/syncup/categories";
-  const categoriesJSONData = exportCategoriesToJSON();
-  console.log("Sending *categories* xml req.");
-
-  sendTableData( categoriesJSONData, categoriesUrl, function(response) {
-    if (response == 200) {
-      const groceriesUrl =  "http://localhost:3000/api/sync/syncup/groceries/";
-      const groceriesJSONData = exportGroceriesToJSON();
-      console.log("Sending *groceries* xml req.");
-
-      sendTableData( groceriesJSONData, groceriesUrl);
-    } else {
-      console.error("Error sending categories table");
+  getDirtyGroceries( (error, dirtyGroceries) => {
+    if(error) {
+      console.error("Error fetching dirty groceries");
+      return;
     }
+    console.log("%cFetching Dirty Groceries: ",
+      'color: brown;', dirtyGroceries);
+
+    const jsonSyncData = JSON.stringify( {groceries: dirtyGroceries} );
+    const syncEndPoint = "http://localhost:3000/api/sync/up/groceries";
+
+    console.log("Sending *groceries* xml req.");
+    sendTableData( jsonSyncData, syncEndPoint, (error, response) => {
+      if(error) {
+        console.error("Error sending groceries: ", error);
+        return;
+      }
+      console.log("%c\n<:: RESPONSE ::>\n",
+        'color: mediumseagreen; text-decoration: underline;', response);
+
+      const {groceries, uuidMap} = response;
+
+      updateGroceriesUuids( uuidMap, (error, success) => {
+        if(error) {
+          console.error("Groceries UUIDs update went wrong.", error);
+          return;
+        }
+        console.log("%cGroceries UUIDs updated to cannonical ones!",
+          'color: lightblue;');
+
+        addGroceriesFromServer( groceries, (error, duplicateGroceries) => {
+          if(error) {
+            console.error("Error adding groceries from server: ", error);
+            return;
+          }
+          console.log("%cAlready in DB: ", 'color: grey', duplicateGroceries);
+          console.log("%cGroceries from server added to local db!",
+            'color: lime;');
+          console.log("%cGroceries after response : ", 'color: pink;',
+          db.exec("SELECT * FROM grocery;")[0].values);
+        });
+      });
+    });
   });
 }
-*/
-
-// SYNC TEST :
-
-// function syncGroceriesToServer(callback) {
-//   const groceriesToSend = [
-//     { newGroceryName: "portos", category: "alcool" },
-//     { newGroceryName: "aramis", category: "apéro"}
-//   ]
-// }

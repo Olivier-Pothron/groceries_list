@@ -6,7 +6,9 @@ const updateButton = document.getElementById("update-button");
 const myGroceriesList = document.getElementById("my-groceries-list");
 
 const localRemButt = document.getElementById("local-rem-button");
-const syncupButt = document.getElementById("syncup-button");
+const syncCatUpButt = document.getElementById("sync-categories-up-button");
+const syncGroUpButt = document.getElementById("sync-groceries-up-button");
+const testButt = document.getElementById("test-button");
 
 // CONSTANTS
 const collapseSign = '\u005E';
