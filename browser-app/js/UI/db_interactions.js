@@ -108,12 +108,19 @@ function syncCategoriesUp() {
           const {duplicate, added} = responseObject;
           console.log("%cCategories already present: ",
             'color: teal;', duplicate);
-          console.log("%cCategories from server added to local db: ",
-            'color: lime;');
+          console.log("%cCategories added to local db: ", 'color: lime;');
           console.table(added);
-          console.log("%cCategories after response : ", 'color: pink;',
-            );
-          console.table(db.exec("SELECT * FROM category;")[0].values);
+
+          resetDirtyFlags('category', () => {
+            if(error) {
+              console.error('Error resetting category dirty flags: ', error);
+              return;
+            }
+            console.log("Every category dirty flag set to '0'.");
+
+            console.log("%cCategories after response : ", 'color: pink;');
+            console.table(db.exec("SELECT * FROM category;")[0].values);
+          });
         });
       });
     });
@@ -167,9 +174,17 @@ function syncGroceriesUp() {
           console.log("%cGroceries from server added to local db: ",
             'color: lime;');
           console.table(added);
-          console.log("%cGroceries after response : ", 'color: pink;',
-            );
-          console.table(db.exec("SELECT * FROM grocery;")[0].values);
+
+          resetDirtyFlags('grocery', () => {
+            if(error) {
+              console.error('Error resetting grocery dirty flags: ', error);
+              return;
+            }
+            console.log("Every grocery dirty flag set to '0'.");
+
+            console.log("%cGroceries after response : ", 'color: pink;');
+            console.table(db.exec("SELECT * FROM grocery;")[0].values);
+          });
         });
       });
     });

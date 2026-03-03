@@ -497,6 +497,16 @@ function getDirtyGroceries(callback) {
   }
 }
 
+function resetDirtyFlags(table, callback) {
+  try {
+    db.run(`UPDATE ${table} SET is_dirty = 0;`);
+    callback(null, true);
+  } catch(error) {
+    console.error('ERROR RESETTING DIRTY FLAGS FOR ${table}: ', error);
+    callback(error, null);
+  }
+}
+
 // DATABASE STORING AND LOADING
 
 function saveDatabase(db) {
