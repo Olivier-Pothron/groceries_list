@@ -84,6 +84,7 @@ function deleteCategory(id, callback) {
 }
 
 function updateCategoriesUuid(uuidMap, callback) {
+  const updatedCategories = [];
   try {
     for ( let clientUuid in uuidMap ) {
       const serverUuid = uuidMap[clientUuid];
@@ -101,12 +102,11 @@ function updateCategoriesUuid(uuidMap, callback) {
         updateStmt.run();
         updateStmt.free();
 
-        console.log(`%cCategory "${categoryName}" uuid updated.`,
-          'color: blue;');
+        updatedCategories.push(category.name);
       }
       selectStmt.free();
     }
-  callback(null, true);
+  callback(null, updatedCategories);
   } catch (error) {
   console.error("Error updating category.", error);
   callback(error, null);
@@ -114,29 +114,34 @@ function updateCategoriesUuid(uuidMap, callback) {
 }
 
 function addCategoriesFromServer(serverCategories, callback) {
-  const duplicateCategories = [];
+  const addedCategories = [];
+  const updatedCategories = [];
   try {
+    // USING SELECT STATEMENT TO USE CONDITIONAL ON INSERT STATEMENT
+    // THIS CODE IS MEANT TO INSERT A NEW ITEM UNLESS IT EXISTS
     const insertQuery = `
-    INSERT INTO category (name, uuid)
-    VALUES (?, ?)
-    ON CONFLICT(name) DO NOTHING;
+    INSERT INTO category (name, uuid, is_dirty)
+    SELECT ?, ?, ?
+    WHERE NOT EXISTS (SELECT 1 FROM category WHERE name = ?)
+    RETURNING id;
     `;
+
     for( let category of serverCategories ) {
       const insertStmt = db.prepare(insertQuery);
-      insertStmt.bind([category.name, category.id]);
-      insertStmt.step();
-      insertStmt.free();
-      const rowsModified = db.getRowsModified();
-      if (rowsModified > 0) {
-        const idResult = db.exec("SELECT last_insert_rowid();");
-        const newId = idResult[0].values[0][0];
-        console.log(`%cAdded "${category.name}" to categories list with insertId ${newId}.`,
-          'color: green;');
+      insertStmt.bind([category.name, category.id, 0, category.name]);
+      if (insertStmt.step()) {
+        const [newId] = insertStmt.get();
+        addedCategories.push({name: category.name, id: newId});
       } else {
-        duplicateCategories.push(category.name);
+        const updateQuery = `UPDATE category SET is_dirty = 0 WHERE name = ?;`;
+        updatedCategories.push(category.name);
+        db.run(updateQuery, [category.name]);
       }
+      insertStmt.free();
     }
-    callback(null, duplicateCategories);
+    
+    const responseObject = {updated: updatedCategories, added: addedCategories}
+    callback(null, responseObject);
   } catch(error) {
     console.error("ERROR ADDING CATEGORIES! ", error);
     callback(error, null);
@@ -265,6 +270,7 @@ function deleteGrocery(id, callback) {
 }
 
 function updateGroceriesUuids ( uuidMap, callback) {
+  const updatedGroceries = [];
   try {
     for ( let clientUuid in uuidMap) {
       const serverUuid = uuidMap[clientUuid];
@@ -283,12 +289,13 @@ function updateGroceriesUuids ( uuidMap, callback) {
         updateStmt.run();
         updateStmt.free();
 
-        console.log(`%cGrocery "${groceryName}" uuid updated.`,
-          'color: blue;');
+        updatedGroceries.push(grocery.name);
+        // console.log(`%cGrocery "${groceryName}" uuid updated.`,
+        //   'color: blue;');
       }
       selectStmt.free();
     }
-    callback(null, true);
+    callback(null, updatedGroceries);
   } catch (error) {
     console.error(`Groceries UUIDs update encountered an error: `, error);
     callback(error, null);
@@ -320,10 +327,11 @@ function testingAddGroceryToServer( grocery, callback ) {
 function addGroceriesFromServer( serverGroceries, callback) {
   const duplicateGroceries = [];
   try {
+    // Subquery inside query enables fetching for local category_id from uuid
     insertQuery = `
       INSERT INTO grocery (name, uuid, category_id)
       VALUES (?, ?, (SELECT id FROM category WHERE uuid = ?))
-      ON CONFLICT(name, category_id) DO NOTHING;
+      ON CONFLICT(name, category_id) DO UPDATE SET is_dirty = 0;
       `;
 
     for ( let grocery of serverGroceries ) {
@@ -339,7 +347,9 @@ function addGroceriesFromServer( serverGroceries, callback) {
         console.log(`%cAdded "${grocery.name}" to categories list with insertId ${newId}.`,
           'color: green;');
       } else {
+        // If no row modified -> duplicate
         duplicateGroceries.push(grocery.name);
+        console.log(`%c${grocery.name} already in database`, 'color: orange;');
       }
     }
     callback(null, duplicateGroceries);

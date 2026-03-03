@@ -1,3 +1,5 @@
+const { table } = require("node:console");
+
 console.log("'db_interactions.js' loaded.");
 
 function loadGroceriesFromDB(callback) {
@@ -90,24 +92,28 @@ function syncCategoriesUp() {
 
       const {categories, uuidMap} = response;
 
-      updateCategoriesUuid(uuidMap, (error, success) => {
+      updateCategoriesUuid(uuidMap, (error, updatedCategories) => {
         if (error) {
           console.error("Categories UUIDs update went wrong.", error);
           return;
         }
-        console.log("%cCategories UUIDs updated to cannonical ones!",
-          'color: lightblue');
+        console.log("%cCategories UUIDs updated to cannonical ones: ",
+          'color: lightblue', updatedCategories);
 
-        addCategoriesFromServer(categories, (error, duplicateCategories) => {
+        addCategoriesFromServer(categories, (error, responseObject) => {
           if(error) {
             console.error("ERROR ADDING CATEGORIES FROM SERVER!");
             return;
           }
-          console.log("%cAlready in DB : ", 'color: grey;', duplicateCategories);
-          console.log("%cCategories from server added to local db!",
+          const {updated, added} = responseObject;
+          console.log("%cCategories updated/already present: ",
+            'color: teal;', updated);
+          console.log("%cCategories from server added to local db: ",
             'color: lime;');
+          console.table(added);
           console.log("%cCategories after response : ", 'color: pink;',
-            db.exec("SELECT * FROM category;")[0].values);
+            );
+          console.table(db.exec("SELECT * FROM category;")[0].values);
         });
       });
     });
