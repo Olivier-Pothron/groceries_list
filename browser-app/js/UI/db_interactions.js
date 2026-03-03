@@ -105,9 +105,9 @@ function syncCategoriesUp() {
             console.error("ERROR ADDING CATEGORIES FROM SERVER!");
             return;
           }
-          const {updated, added} = responseObject;
-          console.log("%cCategories updated/already present: ",
-            'color: teal;', updated);
+          const {duplicate, added} = responseObject;
+          console.log("%cCategories already present: ",
+            'color: teal;', duplicate);
           console.log("%cCategories from server added to local db: ",
             'color: lime;');
           console.table(added);
@@ -156,16 +156,20 @@ function syncGroceriesUp() {
         console.log("%cGroceries UUIDs updated to cannonical ones!",
           'color: lightblue;');
 
-        addGroceriesFromServer( groceries, (error, duplicateGroceries) => {
+        addGroceriesFromServer( groceries, (error, responseObject) => {
           if(error) {
             console.error("Error adding groceries from server: ", error);
             return;
           }
-          console.log("%cAlready in DB: ", 'color: grey', duplicateGroceries);
-          console.log("%cGroceries from server added to local db!",
+          const {duplicate, added} = responseObject;
+          console.log("%cGroceries already present: ",
+            'color: teal;', duplicate);
+          console.log("%cGroceries from server added to local db: ",
             'color: lime;');
+          console.table(added);
           console.log("%cGroceries after response : ", 'color: pink;',
-          db.exec("SELECT * FROM grocery;")[0].values);
+            );
+          console.table(db.exec("SELECT * FROM grocery;")[0].values);
         });
       });
     });

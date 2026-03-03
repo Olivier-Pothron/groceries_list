@@ -115,7 +115,7 @@ function updateCategoriesUuid(uuidMap, callback) {
 
 function addCategoriesFromServer(serverCategories, callback) {
   const addedCategories = [];
-  const updatedCategories = [];
+  const duplicateCategories = [];
   try {
     // USING SELECT STATEMENT TO USE CONDITIONAL ON INSERT STATEMENT
     // THIS CODE IS MEANT TO INSERT A NEW ITEM UNLESS IT EXISTS
@@ -133,14 +133,17 @@ function addCategoriesFromServer(serverCategories, callback) {
         const [newId] = insertStmt.get();
         addedCategories.push({name: category.name, id: newId});
       } else {
-        const updateQuery = `UPDATE category SET is_dirty = 0 WHERE name = ?;`;
-        updatedCategories.push(category.name);
-        db.run(updateQuery, [category.name]);
+        // const updateQuery = `UPDATE category SET is_dirty = 0 WHERE name = ?;`;
+        // db.run(updateQuery, [category.name]);
+        duplicateCategories.push(category.name);
       }
       insertStmt.free();
     }
-    
-    const responseObject = {updated: updatedCategories, added: addedCategories}
+
+    const responseObject = {
+      duplicate: duplicateCategories,
+      added: addedCategories
+    };
     callback(null, responseObject);
   } catch(error) {
     console.error("ERROR ADDING CATEGORIES! ", error);
@@ -325,20 +328,40 @@ function testingAddGroceryToServer( grocery, callback ) {
 }
 
 function addGroceriesFromServer( serverGroceries, callback) {
+  const addedGroceries = [];
   const duplicateGroceries = [];
   try {
     // Subquery inside query enables fetching for local category_id from uuid
+    // insertQuery = `
+    //   INSERT INTO grocery (name, uuid, category_id)
+    //   VALUES (?, ?, (SELECT id FROM category WHERE uuid = ?))
+    //   ON CONFLICT(name, category_id) DO UPDATE SET is_dirty = 0;
+    //   `;
+
     insertQuery = `
-      INSERT INTO grocery (name, uuid, category_id)
-      VALUES (?, ?, (SELECT id FROM category WHERE uuid = ?))
-      ON CONFLICT(name, category_id) DO UPDATE SET is_dirty = 0;
+      INSERT INTO grocery (name, uuid, category_id, is_dirty)
+      SELECT ?, ?, (SELECT id FROM category WHERE uuid = ?), ?
+      WHERE NOT EXISTS (
+        SELECT 1 FROM grocery
+        WHERE name = ?
+        AND category_id = (SELECT id FROM category WHERE uuid = ?)
+      )
+      RETURNING id;
       `;
 
     for ( let grocery of serverGroceries ) {
       const insertStmt = db.prepare(insertQuery);
-      insertStmt.bind([grocery.name, grocery.id, grocery.category_id]);
-      insertStmt.step();
+      insertStmt.bind([grocery.name, grocery.id, grocery.category_id, 0,
+        grocery.name, grocery.category_id]);
+      if (insertStmt.step()) {
+        const [newId] = insertStmt.get();
+        addedGroceries.push({name: grocery.name, id: newId});
+      } else {
+        duplicateGroceries.push(grocery.name);
+      }
       insertStmt.free();
+
+      /*
       const rowsModified = db.getRowsModified();
 
       if (rowsModified > 0) {
@@ -351,8 +374,14 @@ function addGroceriesFromServer( serverGroceries, callback) {
         duplicateGroceries.push(grocery.name);
         console.log(`%c${grocery.name} already in database`, 'color: orange;');
       }
+      */
     }
-    callback(null, duplicateGroceries);
+
+    const responseObject = {
+      duplicate: duplicateGroceries,
+      added: addedGroceries
+    };
+    callback(null, responseObject);
   } catch (error) {
     console.error("Error inserting groceries from server: ", error);
     callback(error, null);
