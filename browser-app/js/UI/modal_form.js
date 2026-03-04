@@ -76,7 +76,7 @@ const validateCategoryInput = () => {
 
     if (!customCatName) {
 
-      return { valid: true, type: 'empty', value: "" };
+      return { valid: true, type: 'empty', name: 'no category', id: -1 };
 
     } else if (isCategoryInSelector) {                                          // maybe try to return valid and
                                                                                 // fetch id from existing option
@@ -90,7 +90,7 @@ const validateCategoryInput = () => {
 
   } else if (selectedOption.value === "") {
 
-    return { valid: true, type: 'empty', value: "" };
+    return { valid: true, type: 'empty', name: 'no category', id: -1 };
 
   } else {
 
@@ -115,13 +115,21 @@ const processFormSubmission = (itemName, categoryId, categoryName, categoryType)
   } else {
     console.log("processFormSubmission: ", itemName, categoryId, categoryName);
     handleGroceryAddition(itemName, categoryId, categoryName, (groceryObject) => {
-      if (groceryObject.category) {
-        const newGrocery = createGroceryElement(groceryObject);
-        const categoryQuery = `[data-category-name="${groceryObject.category}"]`;
-        const existingCategory = allGroceriesList.querySelector(categoryQuery);
-        const existingCategoryList = existingCategory.querySelector("ul");
-        existingCategoryList.appendChild(newGrocery);
+
+      const newGrocery = createGroceryElement(groceryObject);
+      const categoryQuery = `[data-category-name="${groceryObject.category}"]`;
+      let categorySection = allGroceriesList.querySelector(categoryQuery);
+
+      if(!categorySection) {
+        categorySection = document.createElement("li");
+        categorySection = createCategoryElement(groceryObject.category, []);
+        allGroceriesList.appendChild(categorySection);
       }
+
+      const groceriesList = categorySection.querySelector("ul");
+      groceriesList.appendChild(newGrocery);
+      window.location.hash = '';
+
       console.log("%cSubmission completed!", 'color: green;');
       window.location.hash = ''; //close the modal
     });
@@ -162,7 +170,7 @@ const handleGroceryAddition = (itemName, categoryId, categoryName, callback) => 
       const groceryObject = {
         id: newId,
         name: itemName,
-        category: categoryName || "No category",
+        category: categoryName,
         isdirty: 1
       };
       callback(groceryObject);

@@ -63,7 +63,7 @@ function createTables() {
   db.run(`CREATE TABLE IF NOT EXISTS grocery (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL,
-    category_id INTEGER,
+    category_id INTEGER DEFAULT -1 REFERENCES category(id),
     to_be_bought INTEGER DEFAULT 0,
     is_dirty INTEGER DEFAULT 1,
     uuid TEXT UNIQUE,
@@ -97,6 +97,9 @@ function createTables() {
 }
 
 function seedCategories() {
+  db.run(`INSERT INTO category (name, uuid, id) VALUES (?, ?, ?);`,
+    ['no category', 'ffffffff-ffff-ffff-ffff-ffffffffffff', '-1']
+  );
 
   const categories = [
     // { name: 'fruits & légumes' },

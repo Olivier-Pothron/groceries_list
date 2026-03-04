@@ -72,7 +72,7 @@ function syncCategoriesUp() {
 
   getDirtyCategories( (error, dirtyCategories) => {
     if(error) {
-      console.error("Error in fetching dirtyCategories.");
+      console.error("Error fetching dirtyCategories.");
       return;
     }
     console.log("%cFetching Dirty Categories: ",
@@ -125,7 +125,6 @@ function syncCategoriesUp() {
       });
     });
   });
-  // 5. On success, clear is_dirty flags
   // 6. Update last_sync timestamp
 }
 

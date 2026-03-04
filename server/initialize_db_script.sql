@@ -21,7 +21,7 @@ CREATE TABLE grocery (
 
 -- Step 1: Insert "No category" row if it doesn't already exist
 INSERT IGNORE INTO category (id, name)
-VALUES ("-1", 'no category');
+VALUES ('ffffffff-ffff-ffff-ffff-ffffffffffff', 'no category');
 
 -- /\ ALTERNATIVE WAY /\ :
 -- INSERT INTO grocery (id, name)

@@ -108,7 +108,6 @@ function updateCategoriesUuid(uuidMap, callback) {
     }
   callback(null, updatedCategories);
   } catch (error) {
-  console.error("Error updating category.", error);
   callback(error, null);
   }
 }
@@ -146,7 +145,6 @@ function addCategoriesFromServer(serverCategories, callback) {
     };
     callback(null, responseObject);
   } catch(error) {
-    console.error("ERROR ADDING CATEGORIES! ", error);
     callback(error, null);
   }
 }
@@ -202,7 +200,7 @@ function addGrocery(name, catId, groceryUUID, callback) {
       VALUES (?, ?, ?, ?);
       `;
     const insertStmt = db.prepare(insertQuery);
-    insertStmt.bind([name, catId || null, groceryUUID || null, 1]);
+    insertStmt.bind([name, catId || -1, groceryUUID || null, 1]);
     insertStmt.step();
     insertStmt.free();
     const idResult = db.exec("SELECT last_insert_rowid();");
@@ -435,9 +433,6 @@ function getDirtyCategories(callback) {
     const query = "SELECT * FROM category WHERE is_dirty = 1;"
     const res = db.exec(query);
 
-    // console.log(res);
-    // console.log(res[0].values);
-
     let categoriesArray = [];
 
     if (res.length > 0) {
@@ -452,8 +447,6 @@ function getDirtyCategories(callback) {
 
     callback(null, categoriesArray);
   } catch(error) {
-    console.error("Error fetching dirty categories:", error);
-
     callback(error, null);
   }
 }
@@ -491,8 +484,6 @@ function getDirtyGroceries(callback) {
 
     callback(null, groceriesArray);
   } catch(error) {
-    console.error("Error fetching groceries:", error);
-
     callback(error, null);
   }
 }
@@ -502,7 +493,6 @@ function resetDirtyFlags(table, callback) {
     db.run(`UPDATE ${table} SET is_dirty = 0;`);
     callback(null, true);
   } catch(error) {
-    console.error('ERROR RESETTING DIRTY FLAGS FOR ${table}: ', error);
     callback(error, null);
   }
 }
