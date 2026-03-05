@@ -113,37 +113,26 @@ function updateCategoriesUuid(uuidMap, callback) {
 }
 
 function addCategoriesFromServer(serverCategories, callback) {
-  const addedCategories = [];
-  const duplicateCategories = [];
+  const processedCategories = [];
   try {
-    // USING SELECT STATEMENT TO USE CONDITIONAL ON INSERT STATEMENT
-    // THIS CODE IS MEANT TO INSERT A NEW ITEM UNLESS IT EXISTS
-    const insertQuery = `
-    INSERT INTO category (name, uuid, is_dirty)
-    SELECT ?, ?, ?
-    WHERE NOT EXISTS (SELECT 1 FROM category WHERE name = ?)
-    RETURNING id;
-    `;
+    upsertQuery = `
+      INSERT INTO category (name, uuid, is_dirty)
+      VALUES (?, ?, 0)
+      ON CONFLICT(name) DO UPDATE SET
+        is_dirty = 0
+      RETURNING id;
+      `;
 
     for( let category of serverCategories ) {
-      const insertStmt = db.prepare(insertQuery);
-      insertStmt.bind([category.name, category.id, 0, category.name]);
-      if (insertStmt.step()) {
-        const [newId] = insertStmt.get();
-        addedCategories.push({name: category.name, id: newId});
-      } else {
-        // const updateQuery = `UPDATE category SET is_dirty = 0 WHERE name = ?;`;
-        // db.run(updateQuery, [category.name]);
-        duplicateCategories.push(category.name);
-      }
-      insertStmt.free();
+      const upsertStmt = db.prepare(upsertQuery);
+      upsertStmt.bind([category.name, category.id]);
+      upsertStmt.step()
+      const [newId] = upsertStmt.get();
+      processedCategories.push({name: category.name, id: newId});
+      upsertStmt.free();
     }
 
-    const responseObject = {
-      duplicate: duplicateCategories,
-      added: addedCategories
-    };
-    callback(null, responseObject);
+    callback(null, processedCategories);
   } catch(error) {
     callback(error, null);
   }
@@ -326,60 +315,33 @@ function testingAddGroceryToServer( grocery, callback ) {
 }
 
 function addGroceriesFromServer( serverGroceries, callback) {
-  const addedGroceries = [];
-  const duplicateGroceries = [];
-  try {
-    // Subquery inside query enables fetching for local category_id from uuid
-    // insertQuery = `
-    //   INSERT INTO grocery (name, uuid, category_id)
-    //   VALUES (?, ?, (SELECT id FROM category WHERE uuid = ?))
-    //   ON CONFLICT(name, category_id) DO UPDATE SET is_dirty = 0;
-    //   `;
+  const processedGroceries = [];
 
-    insertQuery = `
-      INSERT INTO grocery (name, uuid, category_id, is_dirty)
-      SELECT ?, ?, (SELECT id FROM category WHERE uuid = ?), ?
-      WHERE NOT EXISTS (
-        SELECT 1 FROM grocery
-        WHERE name = ?
-        AND category_id = (SELECT id FROM category WHERE uuid = ?)
-      )
+  try {
+    upsertQuery = `
+      INSERT INTO grocery (name, uuid, category_id, is_dirty, to_be_bought)
+      VALUES (?, ?, (SELECT id FROM category WHERE uuid = ?), 0, ?)
+      ON CONFLICT(name, category_id) DO UPDATE SET
+        is_dirty = 0,
+        to_be_bought = excluded.to_be_bought
       RETURNING id;
       `;
 
     for ( let grocery of serverGroceries ) {
-      const insertStmt = db.prepare(insertQuery);
-      insertStmt.bind([grocery.name, grocery.id, grocery.category_id, 0,
-        grocery.name, grocery.category_id]);
-      if (insertStmt.step()) {
-        const [newId] = insertStmt.get();
-        addedGroceries.push({name: grocery.name, id: newId});
-      } else {
-        duplicateGroceries.push(grocery.name);
-      }
-      insertStmt.free();
-
-      /*
-      const rowsModified = db.getRowsModified();
-
-      if (rowsModified > 0) {
-        const idResult = db.exec("SELECT last_insert_rowid();");
-        const newId = idResult[0].values[0][0];
-        console.log(`%cAdded "${grocery.name}" to categories list with insertId ${newId}.`,
-          'color: green;');
-      } else {
-        // If no row modified -> duplicate
-        duplicateGroceries.push(grocery.name);
-        console.log(`%c${grocery.name} already in database`, 'color: orange;');
-      }
-      */
+      const upsertStmt = db.prepare(upsertQuery);
+      upsertStmt.bind([
+        grocery.name,
+        grocery.id,
+        grocery.category_id,
+        grocery.to_be_bought
+      ]);
+      upsertStmt.step()
+      const [newId] = upsertStmt.get();
+      processedGroceries.push({name: grocery.name, id: newId});
+      upsertStmt.free();
     }
 
-    const responseObject = {
-      duplicate: duplicateGroceries,
-      added: addedGroceries
-    };
-    callback(null, responseObject);
+    callback(null, processedGroceries);
   } catch (error) {
     console.error("Error inserting groceries from server: ", error);
     callback(error, null);
@@ -457,8 +419,7 @@ function getDirtyGroceries(callback) {
       SELECT  grocery.uuid,
               grocery.name AS name,
               grocery.to_be_bought,
-              category.uuid AS category_uuid,
-              grocery.is_dirty
+              category.uuid AS category_uuid
       FROM    grocery
       LEFT JOIN category ON grocery.category_id = category.id
       WHERE   grocery.is_dirty = 1
@@ -473,7 +434,6 @@ function getDirtyGroceries(callback) {
         name: row[1],
         toBeBought: row[2],
         categoryUuid: row[3],
-        isDirty: row[4]
       }));
 
     } else {
@@ -483,15 +443,6 @@ function getDirtyGroceries(callback) {
     // console.log("Groceries Array from DB: ", groceriesArray);
 
     callback(null, groceriesArray);
-  } catch(error) {
-    callback(error, null);
-  }
-}
-
-function resetDirtyFlags(table, callback) {
-  try {
-    db.run(`UPDATE ${table} SET is_dirty = 0;`);
-    callback(null, true);
   } catch(error) {
     callback(error, null);
   }

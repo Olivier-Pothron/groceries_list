@@ -100,27 +100,13 @@ function syncCategoriesUp() {
         console.log("%cCategories UUIDs updated to cannonical ones: ",
           'color: lightblue', updatedCategories);
 
-        addCategoriesFromServer(categories, (error, responseObject) => {
+        addCategoriesFromServer(categories, (error, processedCategories) => {
           if(error) {
             console.error("ERROR ADDING CATEGORIES FROM SERVER!");
             return;
           }
-          const {duplicate, added} = responseObject;
-          console.log("%cCategories already present: ",
-            'color: teal;', duplicate);
-          console.log("%cCategories added to local db: ", 'color: lime;');
-          console.table(added);
-
-          resetDirtyFlags('category', () => {
-            if(error) {
-              console.error('Error resetting category dirty flags: ', error);
-              return;
-            }
-            console.log("Every category dirty flag set to '0'.");
-
-            console.log("%cCategories after response : ", 'color: pink;');
-            console.table(db.exec("SELECT * FROM category;")[0].values);
-          });
+          console.log("%cCategories upserted to local db: ", 'color: lime;');
+          console.table(processedCategories);
         });
       });
     });
@@ -162,28 +148,14 @@ function syncGroceriesUp() {
         console.log("%cGroceries UUIDs updated to cannonical ones!",
           'color: lightblue;');
 
-        addGroceriesFromServer( groceries, (error, responseObject) => {
+        addGroceriesFromServer( groceries, (error, processedGroceries) => {
           if(error) {
             console.error("Error adding groceries from server: ", error);
             return;
           }
-          const {duplicate, added} = responseObject;
-          console.log("%cGroceries already present: ",
-            'color: teal;', duplicate);
-          console.log("%cGroceries from server added to local db: ",
+          console.log("%cGroceries from server upserted to local db: ",
             'color: lime;');
-          console.table(added);
-
-          resetDirtyFlags('grocery', () => {
-            if(error) {
-              console.error('Error resetting grocery dirty flags: ', error);
-              return;
-            }
-            console.log("Every grocery dirty flag set to '0'.");
-
-            console.log("%cGroceries after response : ", 'color: pink;');
-            console.table(db.exec("SELECT * FROM grocery;")[0].values);
-          });
+          console.table(processedGroceries);
         });
       });
     });
