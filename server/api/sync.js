@@ -62,9 +62,19 @@ router.post('/up/groceries', async (req, res) => {
 
   for( let grocery of groceries) {
     if (checkUuid(grocery, serverGroceries)) {
-      console.log(`UUID MATCH FOR GROCERY ${grocery.name}!`);
+      console.log(`UUID MATCH FOR GROCERY ${grocery.name}. Updating...`);
+
+      const updateQuery = `UPDATE grocery SET to_be_bought = ? WHERE id = ?;`;
+      await mysqlPool.promise().query( updateQuery,
+        [grocery.toBeBought, grocery.uuid]);
     } else if (checkNameAndCategory(grocery, serverGroceries)) {
-      console.log(`NAME & CAT MATCH FOR GROCERY ${grocery.name}!`);
+      console.log(`NAME & CAT MATCH FOR GROCERY ${grocery.name}. Updating...`);
+
+      const updateQuery = `UPDATE grocery SET to_be_bought = ?
+      WHERE name = ? AND category_id = ?;`;
+      await mysqlPool.promise().query( updateQuery,
+        [grocery.toBeBought, grocery.name, grocery.categoryUuid]);
+
       console.log(`ADDING GROCERY UUID TO MAP!`);
       const serverGrocery = serverGroceries.find(gro =>
         gro.name === grocery.name && gro.category_id === grocery.categoryUuid);
