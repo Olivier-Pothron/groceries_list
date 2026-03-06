@@ -114,8 +114,8 @@ function syncCategoriesUp() {
   // 6. Update last_sync timestamp
 }
 
-function syncGroceriesUp() {
-  console.log("%c\n<:: SYNC GROCERIES UP REQUEST ::>\n",
+function pushGroceriesToServer( callback ) {
+   console.log("%c\n<:: SYNC GROCERIES UP REQUEST ::>\n",
     'color: orange; text-decoration: underline;');
 
   fetchTheDate( (error, lastSyncDate) => {
@@ -146,32 +146,52 @@ function syncGroceriesUp() {
         }
         console.log("%c\n<:: RESPONSE ::>\n",
           'color: mediumseagreen; text-decoration: underline;', response);
-
-        const {groceries, uuidMap, syncDate} = response;
-
-        updateGroceriesUuids( uuidMap, (error, success) => {
-          if(error) {
-            console.error("Groceries UUIDs update went wrong.", error);
-            return;
-          }
-          console.log("%cGroceries UUIDs updated to cannonical ones!",
-          'color: lightblue;');
-
-          addGroceriesFromServer( groceries, (error, processedGroceries) => {
-            if(error) {
-              console.error("Error adding groceries from server: ", error);
-              return;
-            }
-            console.log("%cGroceries from server upserted to local db: ",
-              'color: lime;');
-              console.table(processedGroceries);
-
-              updateSyncDate(syncDate, (message) => {
-                console.log(`%c${message}`, 'color: teal;');
-              })
-          });
-        });
+          callback(null, response);
       });
     });
   });
+}
+
+function pullGroceriesFromServer( response, callback ) {
+  const {groceries, uuidMap, syncDate} = response;
+
+  updateGroceriesUuids( uuidMap, (error, success) => {
+    if(error) {
+      console.error("Groceries UUIDs update went wrong.", error);
+      return;
+    }
+    console.log("%cGroceries UUIDs updated to cannonical ones!",
+    'color: lightblue;');
+
+    addGroceriesFromServer( groceries, (error, processedGroceries) => {
+      if(error) {
+        console.error("Error adding groceries from server: ", error);
+        return;
+      }
+      console.log("%cGroceries from server upserted to local db: ",
+        'color: lime;');
+      console.table(processedGroceries);
+
+      updateSyncDate(syncDate, (message) => {
+        console.log(`%c${message}`, 'color: teal;');
+        callback(null, true);
+      });
+    });
+  });
+}
+
+function syncGroceriesUp() {
+  pushGroceriesToServer((error, response) => {
+    if(error) {
+      console.error("Error pushing groceries: ", error);
+      return;
+    }
+    pullGroceriesFromServer( response, (error, success) => {
+      if(error) {
+        console.error("Error pulling groceries: ", error);
+        return;
+      }
+      console.log('%cGroceries sync complete!', 'color: green;');
+    })
+  })
 }
