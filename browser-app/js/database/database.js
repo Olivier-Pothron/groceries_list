@@ -448,6 +448,38 @@ function getDirtyGroceries(callback) {
   }
 }
 
+function updateSyncDate(date, callback) {
+  const syncQuery = 'UPDATE sync_meta SET value = ?;'
+  const syncStmt = db.prepare(syncQuery);
+  syncStmt.bind([date]);
+  syncStmt.run();
+  syncStmt.free();
+  callback(`Updating last_sync_date to: ${date}`);
+}
+
+function fetchTheDate(callback) {
+  try {
+      const res = db.exec(`SELECT value FROM sync_meta;`);
+
+      let syncDate = "";
+
+      if (res.length > 0) {
+        syncDate = res[0].values[0][0];
+
+        console.log("Syncd4t3");
+        console.log(syncDate);
+      } else {
+        console.log("No date found.");
+      }
+
+      if (callback) callback(null, syncDate);
+    } catch(error) {
+      console.error("Error fetching d4te:", error);
+
+      if (callback) callback(error, null);
+    }
+}
+
 // DATABASE STORING AND LOADING
 
 function saveDatabase(db) {
@@ -483,52 +515,6 @@ function loadDatabase(base64String) {
 function removeDatabase() {
   localStorage.removeItem('groceriesList');
   initDatabase();
-}
-
-function updateSyncDate(date, callback) {
-  const syncQuery = 'UPDATE sync_meta SET value = ?;'
-  const syncStmt = db.prepare(syncQuery);
-  syncStmt.bind([date]);
-  syncStmt.run();
-  syncStmt.free();
-
-  callback("Done updating sync date");
-}
-
-/*
-function fetchTheDate(callback) {
-
-  const response = db.exec(`SELECT value FROM sync_meta;`);
-  console.log("The date :")
-  console.log(`%c${response}`, 'color: orange;');
-  const syncDate = response[0].values[0][0];
-  console.log(response[0].values[0][0]);
-  console.log(typeof(syncDate));
-  callback(syncDate);
-}
-*/
-
-function fetchTheDate(callback) {
-  try {
-      const res = db.exec(`SELECT value FROM sync_meta;`);
-
-      let syncDate = "";
-
-      if (res.length > 0) {
-        syncDate = res[0].values[0][0];
-
-        console.log("Syncd4t3");
-        console.log(syncDate);
-      } else {
-        console.log("No date found.");
-      }
-
-      if (callback) callback(null, syncDate);
-    } catch(error) {
-      console.error("Error fetching d4te:", error);
-
-      if (callback) callback(error, null);
-    }
 }
 
 /*

@@ -118,44 +118,58 @@ function syncGroceriesUp() {
   console.log("%c\n<:: SYNC GROCERIES UP REQUEST ::>\n",
     'color: orange; text-decoration: underline;');
 
-  getDirtyGroceries( (error, dirtyGroceries) => {
+  fetchTheDate( (error, lastSyncDate) => {
     if(error) {
-      console.error("Error fetching dirty groceries");
+      console.error("Error fetching sync date");
       return;
     }
-    console.log("%cFetching Dirty Groceries: ",
-      'color: brown;', dirtyGroceries);
 
-    const jsonSyncData = JSON.stringify( {groceries: dirtyGroceries} );
-    const syncEndPoint = "http://localhost:3000/api/sync/up/groceries";
-
-    console.log("Sending *groceries* xml req.");
-    sendTableData( jsonSyncData, syncEndPoint, (error, response) => {
+    getDirtyGroceries( (error, dirtyGroceries) => {
       if(error) {
-        console.error("Error sending groceries: ", error);
+        console.error("Error fetching dirty groceries");
         return;
       }
-      console.log("%c\n<:: RESPONSE ::>\n",
-        'color: mediumseagreen; text-decoration: underline;', response);
+      console.log("%cFetching Dirty Groceries: ",
+        'color: brown;', dirtyGroceries);
 
-      const {groceries, uuidMap} = response;
+      const jsonSyncData = JSON.stringify( {
+        groceries: dirtyGroceries,
+        lastSync: lastSyncDate
+      });
+      const syncEndPoint = "http://localhost:3000/api/sync/up/groceries";
 
-      updateGroceriesUuids( uuidMap, (error, success) => {
+      console.log("Sending *groceries* xml req.");
+      sendTableData( jsonSyncData, syncEndPoint, (error, response) => {
         if(error) {
-          console.error("Groceries UUIDs update went wrong.", error);
+          console.error("Error sending groceries: ", error);
           return;
         }
-        console.log("%cGroceries UUIDs updated to cannonical ones!",
-          'color: lightblue;');
+        console.log("%c\n<:: RESPONSE ::>\n",
+          'color: mediumseagreen; text-decoration: underline;', response);
 
-        addGroceriesFromServer( groceries, (error, processedGroceries) => {
+        const {groceries, uuidMap, syncDate} = response;
+
+        updateGroceriesUuids( uuidMap, (error, success) => {
           if(error) {
-            console.error("Error adding groceries from server: ", error);
+            console.error("Groceries UUIDs update went wrong.", error);
             return;
           }
-          console.log("%cGroceries from server upserted to local db: ",
-            'color: lime;');
-          console.table(processedGroceries);
+          console.log("%cGroceries UUIDs updated to cannonical ones!",
+          'color: lightblue;');
+
+          addGroceriesFromServer( groceries, (error, processedGroceries) => {
+            if(error) {
+              console.error("Error adding groceries from server: ", error);
+              return;
+            }
+            console.log("%cGroceries from server upserted to local db: ",
+              'color: lime;');
+              console.table(processedGroceries);
+
+              updateSyncDate(syncDate, (message) => {
+                console.log(`%c${message}`, 'color: teal;');
+              })
+          });
         });
       });
     });

@@ -14,7 +14,7 @@ CREATE TABLE grocery (
 	name VARCHAR(255) NOT NULL,
 	category_id CHAR(36),
 	to_be_bought TINYINT(1) DEFAULT 0,
-  last_modified TIMESTAMP, -- TIMESTAMP IS NOT DOING ANYTHING AUTOMATICALLY AS IS
+  last_modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 	FOREIGN KEY (category_id) REFERENCES category(id),
 	UNIQUE (name, category_id)
 );
