@@ -50,9 +50,10 @@ router.post('/up/categories', async (req, res) => {
 
 // SYNCING GROCERIES FROM CLIENT
 router.post('/up/groceries', async (req, res) => {
-  const { groceries } = req.body;
+  const { groceries, lastSync } = req.body;
   console.log("Client request received.");
   console.log("groceries received: ", groceries);
+  console.log("last_sync_date received: ", lastSync);
   let uuidMap = {};
 
   const groceriesQuery = `SELECT name, id, category_id FROM grocery`;
@@ -64,13 +65,21 @@ router.post('/up/groceries', async (req, res) => {
     if (checkUuid(grocery, serverGroceries)) {
       console.log(`UUID MATCH FOR GROCERY ${grocery.name}. Updating...`);
 
-      const updateQuery = `UPDATE grocery SET to_be_bought = ? WHERE id = ?;`;
+      const updateQuery = `
+      UPDATE grocery
+      SET to_be_bought = ?
+      WHERE id = ? AND to_be_bought != ?;
+      `;
+
       await mysqlPool.promise().query( updateQuery,
-        [grocery.toBeBought, grocery.uuid]);
+        [grocery.toBeBought, grocery.uuid, grocery.toBeBought]);
+
     } else if (checkNameAndCategory(grocery, serverGroceries)) {
       console.log(`NAME & CAT MATCH FOR GROCERY ${grocery.name}. Updating...`);
 
-      const updateQuery = `UPDATE grocery SET to_be_bought = ?
+      const updateQuery = `
+      UPDATE grocery
+      SET to_be_bought = ?
       WHERE name = ? AND category_id = ?;`;
       await mysqlPool.promise().query( updateQuery,
         [grocery.toBeBought, grocery.name, grocery.categoryUuid]);
@@ -95,10 +104,14 @@ router.post('/up/groceries', async (req, res) => {
     }
   }
 
-  const allGroceriesQuery = 'SELECT * FROM grocery';
-  const [allGroceries] = await mysqlPool.promise().query(allGroceriesQuery);
+  const allGroceriesQuery = 'SELECT * FROM grocery WHERE last_modified > ?';
 
-  const payload = { groceries: allGroceries, uuidMap: uuidMap };
+  const lastSyncDate = new Date(lastSync);
+  const [allGroceries] = await mysqlPool.promise().query(allGroceriesQuery, [lastSyncDate]);
+
+  const newSyncDate = new Date().toISOString();
+
+  const payload = { groceries: allGroceries, uuidMap: uuidMap, syncDate: newSyncDate };
 
   console.log("payload: ", payload)
 
@@ -133,66 +146,6 @@ const checkNameAndCategory = (clientGrocery, serverGroceries) => {
   }
   return false;
 }
-
-/*
-router.post('/up', (req, res) => {
-  const { categories, groceries, last_sync } = req.body;
-  console.log("Request from client received.");
-  console.log("categories: ", categories);
-  console.log("groceries: ", groceries);
-  console.log("last_sync: ", last_sync);
-
-  if (categories.length > 0) {
-    for( let category of categories ) {
-      console.log(`Trying a loop : ${category.name} / ${category.id}`);
-      upsertCategory(category, (err, result) => {
-        if(err) {
-          console.error("upsertCategory returned error!");
-          console.error(err);
-          return;
-        }
-        console.log(`upsertCategory successful!`);
-        console.log(result);
-      });
-    }
-  }
-
-  if (groceries.length > 0) {
-    for( let grocery of groceries ) {
-      console.log(`Trying a loop : ${grocery.name} / ${grocery.id}`);
-      upsertGrocery(grocery, (err, result) => {
-          if(err) {
-            console.error("upsertGrocery returned error!");
-            console.error(err);
-            return;
-          }
-          console.log("upsertGrocery successful!");
-          console.log(result);
-      });
-    }
-  }
-
-  // TODO: Insert/update categories
-  // TODO: Insert/update groceries
-  // TODO: return success
-
-  res.json({ success: true });
-});
-
-router.post('/down', (req, res) => {
-  const { last_sync } = req.body;
-  console.log("Request from client received.");
-
-  // TODO: GET categories modified since last_sync
-  // TODO: GET groceries modified since last_sync
-
-  res.json({
-    categories: [],
-    groceries: [],
-    server_time: new Date().toISOString()
-  });
-});
-*/
 
 // Export the router so it can be used in server.js
 module.exports = router;
