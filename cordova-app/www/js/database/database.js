@@ -2,7 +2,11 @@ console.log("'database.js' loaded.");
 
 // CRUD STUFF
 
-// - CATEGORIES
+////////////////////////////////
+////////// CATEGORIES //////////////
+////////////////////////////////
+// #region CATEGORIES
+
 function getCategories(callback) {
 
   db.transaction(function (tx) {
@@ -158,7 +162,13 @@ function addCategoriesFromServer(serverCategories, callback) {
     });
 }
 
-// - GROCERIES
+// #endregion
+
+/////////////////////////////////
+/////////// GROCERIES ///////////////
+/////////////////////////////////
+// #region GROCERIES
+
 function getGroceries(callback) {
   let query = `
     SELECT  grocery.id,
@@ -210,7 +220,7 @@ function addGrocery (name, categoryId, groceryUUID, callback) {
 
   db.transaction(function(tx) {
     let insertQuery = `
-    INSERT INTO grocery (name, category_id, id, is_dirty)
+    INSERT INTO grocery (name, category_id, uuid, is_dirty)
     VALUES (?, ?, ?, ?)`;
 
     tx.executeSql(insertQuery, [name, categoryId || null, groceryUUID || null, 1],
@@ -327,13 +337,90 @@ function toggleToBeBought (id, callback) {
   });
 }
 
-function getDirtyCategories(callback) {
+function updateGroceriesUuids ( uuidMap, callback ) {
+  const updatedGroceries = [];
+  const updateQuery = `
+      UPDATE grocery
+      SET uuid = ?
+      WHERE uuid = ?
+      RETURNING name
+      ;`;
 
+  db.transaction( function(tx) {
+    for ( let clientUuid in uuidMap ) {
+      const serverUuid = uuidMap[clientUuid];
+      tx.executeSql( updateQuery, [serverUuid, clientUuid],
+        function (tx, updateResult) {
+          if (updateResult.rowsAffected === 0) {
+            console.warn('No matching category found');
+            return;
+          }
+          const name = updateResult.rows.item(0).name;
+          updatedGroceries.push(name);
+        },
+        function (tx, error) {
+          console.error("Error in update!", error);
+        }
+      );
+    }
+  }, function (error) {
+    console.error('Transaction ERROR: ' + error.message);
+    callback(error, null);
+  }, function () {
+    console.log('%cTransaction SUCCESS!',
+      'color: green; font_weight: bold;');
+    callback(null, updatedGroceries);
+  });
+}
+
+function addGroceriesFromServer( serverGroceries, callback ) {
+  const processedGroceries = [];
+
+  const upsertQuery = `
+    INSERT INTO grocery (name, uuid, category_id, is_dirty, to_be_bought)
+    VALUES (?, ?, (SELECT id FROM category WHERE uuid = ?), 0, ?)
+    ON CONFLICT(name, category_id) DO UPDATE SET
+      is_dirty = 0,
+      to_be_bought = excluded.to_be_bought
+    RETURNING id;
+    `;
+
+  db.transaction( (tx) => {
+    for( let grocery of serverGroceries ) {
+      tx.executeSql( upsertQuery, [
+        grocery.name,
+        grocery.id,             // 'id' is actually uuid from server
+        grocery.category_id,    // 'category_id' is actually uuid from server
+        grocery.to_be_bought
+      ], (tx, upsertResult) => {
+        const returnedId = upsertResult.rows.item(0).id;
+        processedGroceries.push({name: grocery.name, id: returnedId});
+      }, (tx, error) => {
+        console.error("Error in upsert: ", error);
+      });
+    }
+  }, (error) => {
+    console.error("TRANSACTION ERROR: ", error);
+    callback(error, null);
+  }, () => {
+    console.log("TRANSACTION SUCCESS!");
+    callback(null, processedGroceries);
+  });
+}
+
+// #endregion
+
+////////////////////////////////
+/// HANDLING "DIRTY" DATA ///////////
+////////////////////////////////
+// #region DIRTY
+
+function getDirtyCategories(callback) {
+  let categoriesArray = [];
   db.transaction(function (tx) {
     let query = "SELECT * FROM category WHERE is_dirty = 1";
     tx.executeSql(query, [],
       function(tx, resultSet) {
-      let categoriesArray = [];
       for (let i = 0; i < resultSet.rows.length ; i++ ) {
         let category = resultSet.rows.item(i);
         categoriesArray.push({
@@ -342,23 +429,106 @@ function getDirtyCategories(callback) {
         });
       }
 
-      callback(null, categoriesArray);
     }, function(tx, error) {
       console.log("Query Error! " + error.message);
-
-      callback(error, null);
+      return;
     });
   }, function onTransactionError(error) {
     console.error('Transaction ERROR: ' + error.message);
+    callback(error, null);
   }, function onTransactionSuccess() {
     console.log('%cTransaction SUCCESS!',
       'color: green; font_weight: bold;');
+    callback(null, categoriesArray);
+    });
+}
+
+function getDirtyGroceries(callback) {
+  let groceriesArray = [];
+  db.transaction(function (tx) {
+    let query = `
+      SELECT  grocery.uuid,
+              grocery.name AS name,
+              grocery.to_be_bought,
+              category.uuid AS category_uuid
+      FROM    grocery
+      LEFT JOIN category ON grocery.category_id = category.id
+      WHERE   grocery.is_dirty = 1
+      `;
+
+    tx.executeSql(query, [],
+      function(tx, resultSet) {
+      for (let i = 0; i < resultSet.rows.length ; i++ ) {
+        let groceries = resultSet.rows.item(i);
+        groceriesArray.push({
+          uuid: groceries.uuid,
+          name: groceries.name,
+          toBeBought: groceries.to_be_bought,
+          categoryUuid: groceries.category_uuid
+        });
+      }
+
+    }, function(tx, error) {
+      console.log("Query Error! " + error.message);
+      return;
+    });
+  }, function onTransactionError(error) {
+    console.error('Transaction ERROR: ' + error.message);
+    callback(error, null);
+  }, function onTransactionSuccess() {
+    console.log('%cTransaction SUCCESS!',
+      'color: green; font_weight: bold;');
+    callback(null, groceriesArray);
   });
 }
 
+// #endregion
 
+////////////////////////////////
+/////////// SYNC DATE ///////////////
+////////////////////////////////
+// #region DATE
 
+function updateSyncDate(date, callback) {
+  db.transaction( (tx) => {
+    tx.executeSql(  'UPDATE sync_meta SET value = ?;', [date],
+      (tx, success) => {
+        console.log("Update sync date successful!");
+      },
+      (tx, error) => {
+        console.error("Update error: ", error);
+        return;
+      }
+    )
+  }, (error) => {
+    console.error("TRANSACTION ERROR: ", error);
+    callback(error, null);
+  }, () => {
+    callback(null, `Updating last_sync_date to: ${date}`);
+  });
+}
 
+function fetchTheDate(callback) {
+  let sync_date = "";
+
+  db.transaction( (tx) => {
+    tx.executeSql( `SELECT value FROM sync_meta;`, [],
+      (tx, result) => {
+        sync_date = result.rows.item(0).value;
+      },
+      (tx, error) => {
+        console.error("Error fetching date: ", error);
+      }
+    )
+  }, (error) => {
+    console.error("TRANSACTION ERROR: ", error);
+    callback(error, null);
+  }, () => {
+    callback(null, sync_date);
+  });
+}
+
+// #endregion
 
 
 

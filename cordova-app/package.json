@@ -13,17 +13,21 @@
   "author": "Apache Cordova Team",
   "license": "Apache-2.0",
   "devDependencies": {
+    "cordova-android": "^15.0.0",
     "cordova-browser": "^7.0.0",
+    "cordova-plugin-cleartext": "^1.0.0",
     "cordova-plugin-file": "^8.1.0",
     "cordova-sqlite-storage": "^6.1.0"
   },
   "cordova": {
     "platforms": [
-      "browser"
+      "browser",
+      "android"
     ],
     "plugins": {
       "cordova-sqlite-storage": {},
-      "cordova-plugin-file": {}
+      "cordova-plugin-file": {},
+      "cordova-plugin-cleartext": {}
     }
   }
 }

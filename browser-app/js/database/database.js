@@ -259,75 +259,6 @@ function deleteGrocery(id, callback) {
   }
 }
 
-// SYNCHRONIZATION
-
-function updateGroceriesUuids ( uuidMap, callback) {
-  const updatedGroceries = [];
-  try {
-    for ( let clientUuid in uuidMap) {
-      const serverUuid = uuidMap[clientUuid];
-
-      const selectQuery = `SELECT name FROM grocery WHERE uuid = ?;`
-      const selectStmt = db.prepare(selectQuery);
-      selectStmt.bind([clientUuid]);
-
-      if(selectStmt.step()) {
-        const grocery = selectStmt.getAsObject();
-        const groceryName = grocery.name;
-
-        const updateQuery = `UPDATE grocery SET uuid = ? WHERE uuid = ?;`
-        const updateStmt = db.prepare(updateQuery);
-        updateStmt.bind([serverUuid, clientUuid]);
-        updateStmt.run();
-        updateStmt.free();
-
-        updatedGroceries.push(grocery.name);
-        // console.log(`%cGrocery "${groceryName}" uuid updated.`,
-        //   'color: blue;');
-      }
-      selectStmt.free();
-    }
-    callback(null, updatedGroceries);
-  } catch (error) {
-    console.error(`Groceries UUIDs update encountered an error: `, error);
-    callback(error, null);
-  }
-}
-
-function addGroceriesFromServer( serverGroceries, callback) {
-  const processedGroceries = [];
-
-  try {
-    upsertQuery = `
-      INSERT INTO grocery (name, uuid, category_id, is_dirty, to_be_bought)
-      VALUES (?, ?, (SELECT id FROM category WHERE uuid = ?), 0, ?)
-      ON CONFLICT(name, category_id) DO UPDATE SET
-        is_dirty = 0,
-        to_be_bought = excluded.to_be_bought
-      RETURNING id;
-      `;
-
-    for ( let grocery of serverGroceries ) {
-      const upsertStmt = db.prepare(upsertQuery);
-      upsertStmt.bind([
-        grocery.name,
-        grocery.id,
-        grocery.category_id,
-        grocery.to_be_bought
-      ]);
-      upsertStmt.step()
-      const [newId] = upsertStmt.get();
-      processedGroceries.push({name: grocery.name, id: newId});
-      upsertStmt.free();
-    }
-
-    callback(null, processedGroceries);
-  } catch (error) {
-    console.error("Error inserting groceries from server: ", error);
-    callback(error, null);
-  }
-}
-
 function toggleToBeBought(id, callback) {
   try {
     const identifyingQuery = "SELECT name, to_be_bought FROM grocery WHERE id = ?;";
@@ -363,6 +294,69 @@ function toggleToBeBought(id, callback) {
     console.error("Error fetching groceries:", error);
 
     if (callback) callback(error, null);
+  }
+}
+
+// SYNCHRONIZATION
+
+function updateGroceriesUuids ( uuidMap, callback ) {
+  const updatedGroceries = [];
+  const updateQuery = `
+      UPDATE grocery
+      SET uuid = ?
+      WHERE uuid = ?
+      RETURNING name
+      ;`;
+
+  try {
+    for ( let clientUuid in uuidMap) {
+      const serverUuid = uuidMap[clientUuid];
+      const updateStmt = db.prepare(updateQuery);
+      updateStmt.bind([serverUuid, clientUuid]);
+      if(updateStmt.step()) {
+        const grocery = updateStmt.getAsObject();
+        updatedGroceries.push(grocery.name);
+      }
+      updateStmt.free();
+    }
+    callback(null, updatedGroceries);
+  } catch (error) {
+    console.error(`Groceries UUIDs update encountered an error: `, error);
+    callback(error, null);
+  }
+}
+
+function addGroceriesFromServer( serverGroceries, callback ) {
+  const processedGroceries = [];
+
+  try {
+    const upsertQuery = `
+      INSERT INTO grocery (name, uuid, category_id, is_dirty, to_be_bought)
+      VALUES (?, ?, (SELECT id FROM category WHERE uuid = ?), 0, ?)
+      ON CONFLICT(name, category_id) DO UPDATE SET
+        is_dirty = 0,
+        to_be_bought = excluded.to_be_bought
+      RETURNING id;
+      `;
+
+    for ( let grocery of serverGroceries ) {
+      const upsertStmt = db.prepare(upsertQuery);
+      upsertStmt.bind([
+        grocery.name,
+        grocery.id,             // 'id' is actually uuid from the server
+        grocery.category_id,    // 'category_id' is actually uuid from the server
+        grocery.to_be_bought
+      ]);
+      upsertStmt.step()
+      const [returnedId] = upsertStmt.get();
+      processedGroceries.push({name: grocery.name, id: returnedId});
+      upsertStmt.free();
+    }
+
+    callback(null, processedGroceries);
+  } catch (error) {
+    console.error("Error inserting groceries from server: ", error);
+    callback(error, null);
   }
 }
 

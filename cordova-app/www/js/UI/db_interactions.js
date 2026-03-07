@@ -1,5 +1,7 @@
 console.log("'db_interactions.js' loaded.");
 
+const BASE_URL = "http://192.168.1.21:3000/api";
+
 function loadGroceriesFromDB(callback) {
 
   getGroceries(function(error, groceries) {                                     // getting all columns for groceries
@@ -79,7 +81,7 @@ function syncCategoriesUp() {
       'color: brown;', dirtyCategories);
 
     const jsonSyncData = JSON.stringify({categories: dirtyCategories});
-    const syncEndPoint = "http://localhost:3000/api/sync/up/categories";
+    const syncEndPoint = `${BASE_URL}/sync/up/categories`;
 
     console.log("Sending *categories* xml req.");
     sendTableData( jsonSyncData, syncEndPoint, (error, response) => {
@@ -135,7 +137,7 @@ function pushGroceriesToServer( callback ) {
         groceries: dirtyGroceries,
         lastSync: lastSyncDate
       });
-      const syncEndPoint = "http://localhost:3000/api/sync/up/groceries";
+      const syncEndPoint = `${BASE_URL}/sync/up/groceries`;
 
       console.log("Sending *groceries* xml req.");
       sendTableData( jsonSyncData, syncEndPoint, (error, response) => {
@@ -170,7 +172,7 @@ function pullGroceriesFromServer( response, callback ) {
       console.log("%cGroceries from server upserted to local db: ",
         'color: lime;', processedGroceries);
 
-      updateSyncDate(syncDate, (message) => {
+      updateSyncDate(syncDate, (error, message) => {
         console.log(`%c${message}`, 'color: teal;');
         callback(null, true);
       });
