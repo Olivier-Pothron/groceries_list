@@ -35,8 +35,8 @@ function getCategories(callback) {
 function addCategory (name, categoryUUID, callback) {
 
   db.transaction(function(tx) {
-    let query = "INSERT INTO category (name, id, is_dirty) VALUES (?, ?, ?)"
-    tx.executeSql(query, [name, categoryUUID, 1],
+    let query = "INSERT INTO category (name, id) VALUES (?, ?)"
+    tx.executeSql(query, [name, categoryUUID],
       function(tx, result) {
         console.log(`%cCategory "${name}" added with ID ${result.insertId}`, 'color: green;');
 
@@ -89,22 +89,91 @@ function deleteCategory (id) {
   });
 }
 
+// SYNCHRONIZATION
+
+function updateCategoriesUuid(uuidMap, callback) {
+  const updatedCategories = [];
+  const updateQuery = `
+      UPDATE category
+      SET uuid = ?
+      WHERE uuid = ?
+      RETURNING name
+      ;`;
+
+  db.transaction( function(tx) {
+    for ( let clientUuid in uuidMap ) {
+      const serverUuid = uuidMap[clientUuid];
+      tx.executeSql( updateQuery, [serverUuid, clientUuid],
+        function (tx, updateResult) {
+          if (updateResult.rowsAffected === 0) {
+            console.warn('No matching category found');
+            return;
+          }
+          const name = updateResult.rows.item(0).name;
+          updatedCategories.push(name);
+        },
+        function (tx, error) {
+          console.error("Error in update!", error);
+        }
+      );
+    }
+  }, function (error) {
+    console.error('Transaction ERROR: ' + error.message);
+    callback(error, null);
+  }, function () {
+    console.log('%cTransaction SUCCESS!',
+      'color: green; font_weight: bold;');
+    callback(null, updatedCategories);
+  });
+}
+
+function addCategoriesFromServer(serverCategories, callback) {
+  const processedCategories = [];
+  const upsertQuery = `
+    INSERT INTO category (name, uuid, is_dirty)
+    VALUES (?, ?, 0)
+    ON CONFLICT(name) DO UPDATE SET
+      is_dirty = 0
+    RETURNING id
+    ;`;
+
+    db.transaction( function(tx) {
+      for( let category of serverCategories ) {
+        tx.executeSql( upsertQuery, [ category.name, category.id ],
+          function ( tx, upsertResult) {
+            const newId = upsertResult.rows.item(0).id;
+            processedCategories.push({name: category.name, id: newId});
+          },
+          function (tx, error) {
+            console.error("Sql execution error: ", error);
+          }
+        );
+      }
+    }, function(error) {
+      console.error("TRANSACTION ERROR: ", error);
+      callback(error, null);
+    }, function() {
+      console.log("TRANSACTION SUCCESS!");
+      callback(null, processedCategories);
+    });
+}
+
 // - GROCERIES
 function getGroceries(callback) {
+  let query = `
+    SELECT  grocery.id,
+            grocery.name AS name,
+            grocery.to_be_bought,
+            category.name AS category,
+            grocery.category_id AS category_id,
+            grocery.is_dirty
+    FROM    grocery
+    LEFT JOIN    category
+    ON      grocery.category_id = category.id
+    `;
+    // "LEFT JOIN" to handle groceries without a category
 
   db.transaction(function(tx) {
-    let query = `
-      SELECT  grocery.id,
-              grocery.name AS name,
-              grocery.to_be_bought,
-              category.name AS category,
-              grocery.category_id AS category_id,
-              grocery.is_dirty
-      FROM    grocery
-      LEFT JOIN    category
-      ON      grocery.category_id = category.id
-      `;
-      // "LEFT JOIN" to handle groceries without a category
 
     tx.executeSql(query, [],
       function(tx, resultSet) {
@@ -257,6 +326,42 @@ function toggleToBeBought (id, callback) {
       'color: green; font_weight: bold;');
   });
 }
+
+function getDirtyCategories(callback) {
+
+  db.transaction(function (tx) {
+    let query = "SELECT * FROM category WHERE is_dirty = 1";
+    tx.executeSql(query, [],
+      function(tx, resultSet) {
+      let categoriesArray = [];
+      for (let i = 0; i < resultSet.rows.length ; i++ ) {
+        let category = resultSet.rows.item(i);
+        categoriesArray.push({
+          uuid: category.uuid,
+          name: category.name
+        });
+      }
+
+      callback(null, categoriesArray);
+    }, function(tx, error) {
+      console.log("Query Error! " + error.message);
+
+      callback(error, null);
+    });
+  }, function onTransactionError(error) {
+    console.error('Transaction ERROR: ' + error.message);
+  }, function onTransactionSuccess() {
+    console.log('%cTransaction SUCCESS!',
+      'color: green; font_weight: bold;');
+  });
+}
+
+
+
+
+
+
+
 
 // function whatever (id) {
 

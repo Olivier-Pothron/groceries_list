@@ -3,29 +3,27 @@ console.log("'database.js' loaded");
 ////////////////////////////////
 ////////// CATEGORIES //////////////
 ////////////////////////////////
-
+// #region CATEGORIES
 function getCategories(callback) {
   try {
-    const query = "SELECT * FROM category;"
-    const res = db.exec(query);
+    const selectQuery = "SELECT * FROM category;"
+    const selectStmt = db.prepare(selectQuery)
 
     let categoriesArray = [];
 
-    if (res.length > 0) {
-      categoriesArray = res[0].values.map (row => ({
-        id: row[0],
-        name: row[1]
-      }));
-
-    } else {
-      console.log("No category found.");
+    while (selectStmt.step()) {
+      const row = selectStmt.getAsObject();
+      categoriesArray.push( { id: row.id, name: row.name });
     }
 
-    if (callback) callback(null, categoriesArray);
+    selectStmt.free();
+
+    if (!categoriesArray.length) console.log("No category found.");
+    callback(null, categoriesArray);
   } catch(error) {
     console.error("Error fetching categories:", error);
 
-    if (callback) callback(error, null);
+    callback(error, null);
   }
 }
 
@@ -83,45 +81,45 @@ function deleteCategory(id, callback) {
   }
 }
 
+// SYNCHRONIZATION
+
 function updateCategoriesUuid(uuidMap, callback) {
   const updatedCategories = [];
+  const updateQuery = `
+      UPDATE category
+      SET uuid = ?
+      WHERE uuid = ?
+      RETURNING name
+      ;`;
+
   try {
     for ( let clientUuid in uuidMap ) {
       const serverUuid = uuidMap[clientUuid];
-
-      const identifyingQuery = "SELECT name FROM category WHERE uuid = ?;";
-      const selectStmt = db.prepare(identifyingQuery);
-      selectStmt.bind([clientUuid]);
-      if (selectStmt.step()) {
-        const category = selectStmt.getAsObject();
-        const categoryName = category.name;
-
-        const updateQuery = "UPDATE category SET uuid = ? WHERE uuid = ?;";
-        const updateStmt = db.prepare(updateQuery);
-        updateStmt.bind([serverUuid, clientUuid]);
-        updateStmt.run();
-        updateStmt.free();
-
+      const updateStmt = db.prepare(updateQuery);
+      updateStmt.bind([serverUuid, clientUuid]);
+      if(updateStmt.step()) {
+        const category = updateStmt.getAsObject();
         updatedCategories.push(category.name);
       }
-      selectStmt.free();
+      updateStmt.free();
     }
-  callback(null, updatedCategories);
+    callback(null, updatedCategories);
   } catch (error) {
-  callback(error, null);
+    callback(error, null);
   }
 }
 
 function addCategoriesFromServer(serverCategories, callback) {
   const processedCategories = [];
+  upsertQuery = `
+    INSERT INTO category (name, uuid, is_dirty)
+    VALUES (?, ?, 0)
+    ON CONFLICT(name) DO UPDATE SET
+      is_dirty = 0
+    RETURNING id;
+    `;
+
   try {
-    upsertQuery = `
-      INSERT INTO category (name, uuid, is_dirty)
-      VALUES (?, ?, 0)
-      ON CONFLICT(name) DO UPDATE SET
-        is_dirty = 0
-      RETURNING id;
-      `;
 
     for( let category of serverCategories ) {
       const upsertStmt = db.prepare(upsertQuery);
@@ -138,10 +136,12 @@ function addCategoriesFromServer(serverCategories, callback) {
   }
 }
 
+// #endregion
+
 /////////////////////////////////
 /////////// GROCERIES ///////////////
 /////////////////////////////////
-
+// #region GROCERIES
 function getGroceries(callback) {
   try {
     let query = `
@@ -240,13 +240,13 @@ function deleteGrocery(id, callback) {
       deletionStmt.run();
       deletionStmt.free();
 
-      console.log(`%cCategory "${categoryName}" deleted from database.`,
+      console.log(`%cGrocery "${groceryName}" deleted from database.`,
         'color: green;');
 
-        if (callback) callback(null, categoryName);
+        if (callback) callback(null, groceryName);
 
     } else {
-      console.log("No category found for id :" + id);
+      console.log("No grocery found for id :" + id);
     }
 
     selectStmt.free();
@@ -258,6 +258,8 @@ function deleteGrocery(id, callback) {
 
   }
 }
+
+// SYNCHRONIZATION
 
 function updateGroceriesUuids ( uuidMap, callback) {
   const updatedGroceries = [];
@@ -290,28 +292,6 @@ function updateGroceriesUuids ( uuidMap, callback) {
     console.error(`Groceries UUIDs update encountered an error: `, error);
     callback(error, null);
   }
-}
-
-function testingAddGroceryToServer( grocery, callback ) {
-  try {
-    insertQuery = `
-      INSERT INTO grocery (name, uuid, category_id)
-      VALUES (?, ?, (SELECT id FROM category WHERE uuid = ?));
-      `;
-
-    const stmt = db.prepare(insertQuery);
-
-    console.log("test-grocery: ", grocery);
-
-    stmt.run([grocery.name, grocery.uuid, grocery.category_id])
-
-    stmt.free()
-
-  } catch (error) {
-    console.error("watzehell: ", error);
-    callback(error, null);
-  }
-  callback(null, true);
 }
 
 function addGroceriesFromServer( serverGroceries, callback) {
@@ -386,29 +366,32 @@ function toggleToBeBought(id, callback) {
   }
 }
 
+// #endregion
+
 ////////////////////////////////
 /// HANDLING "DIRTY" DATA ///////////
 ////////////////////////////////
+// #region DIRTY
 
 function getDirtyCategories(callback) {
   try {
-    const query = "SELECT * FROM category WHERE is_dirty = 1;"
-    const res = db.exec(query);
+    const selectQuery = "SELECT * FROM category WHERE is_dirty = 1;"
+    const selectStmt = db.prepare(selectQuery)
 
-    let categoriesArray = [];
+    let dirtycategoriesArray = [];
 
-    if (res.length > 0) {
-      categoriesArray = res[0].values.map (row => ({
-        uuid: row[3],
-        name: row[1]
-      }));
-
-    } else {
-      console.log("No dirty category found.");
+    while (selectStmt.step()) {
+      const row = selectStmt.getAsObject();
+      dirtycategoriesArray.push( { uuid: row.uuid, name: row.name });
     }
 
-    callback(null, categoriesArray);
+    selectStmt.free();
+
+    if (!dirtycategoriesArray.length) console.log("No dirty category found.");
+    callback(null, dirtycategoriesArray);
   } catch(error) {
+    console.error("Error fetching categories:", error);
+
     callback(error, null);
   }
 }
@@ -448,6 +431,13 @@ function getDirtyGroceries(callback) {
   }
 }
 
+//#endregion
+
+////////////////////////////////
+/////////// SYNC DATE ///////////////
+////////////////////////////////
+// #region DATE
+
 function updateSyncDate(date, callback) {
   const syncQuery = 'UPDATE sync_meta SET value = ?;'
   const syncStmt = db.prepare(syncQuery);
@@ -480,7 +470,12 @@ function fetchTheDate(callback) {
     }
 }
 
-// DATABASE STORING AND LOADING
+// #endregion
+
+/////////////////////////////////////
+// DATABASE STORING AND LOADING //////////
+////////////////////////////////////
+// #region DATABASE
 
 function saveDatabase(db) {
   // 1. Export the database to Uint8Array
@@ -517,13 +512,15 @@ function removeDatabase() {
   initDatabase();
 }
 
+// #endregion
+
 /*
 stmt.bind([param]);
-stmt.step();
+stmt.step();            // RETURNS ONE ROW AT EACH STEP
 stmt.free();
 
 //OR//
 
-stmt.run([param]);
+stmt.run([param]);      // RETURNS ALL ROWS
 stmt.free();
 */

@@ -20,11 +20,6 @@ seedButton.addEventListener("click", () => {
   console.log("Database tables seeded.");
 });
 
-// SYNCING DB
-syncupButt.addEventListener("click", () => {
-  sync();   //this is for testing purpose
-});
-
 // REFRESH LIST BUTTON
 updateButton.addEventListener("click", () => {
   console.log("Refreshing...");
@@ -48,19 +43,17 @@ updateButton.addEventListener("click", () => {
   });
 });
 
-// TESTING BUTTON
-testButton.addEventListener("click", () => {
-  db.transaction(function(tx) {
-    tx.executeSql("SELECT name FROM sqlite_master WHERE type ='table'", [],
-      function(tx, result) {
-        if (result.rows.length != 0) {
-          console.log("Tables present!");
-          for( let i = 0 ; i < result.rows.length ; i++) {
-            console.log(`${i} - ${result.rows.item(i).name}`);
-          }
-        } else {
-          console.log("No tables detected!");
-        }
-      });
-  });
+// SYNCING DB
+syncCatUpButt.addEventListener("click", () => {
+  syncCategoriesUp( (error, result) => {
+    console.log("Callback successful");
+    console.log(result);
+  })
+});
+
+syncGroUpButt.addEventListener("click", () => {
+  syncGroceriesUp( (error, result) => {
+    console.log("Callback successful");
+    console.log(result);
+  })
 });

@@ -46,25 +46,30 @@ function dropTables(tx) {
   console.log("'category' table dropped");
   tx.executeSql('DROP TABLE IF EXISTS grocery');
   console.log("'grocery' table dropped");
+  tx.executeSql('DROP TABLE IF EXISTS sync_meta');
+  console.log("'sync_meta' table dropped");
   console.log('%c### All tables dropped ###', 'color: blue;');
 }
 
 // CREATING TABLES
 function createTables(tx) {
 
-  tx.executeSql(`CREATE TABLE IF NOT EXISTS category (
-    id TEXT PRIMARY KEY,
+  tx.executeSql(`
+    CREATE TABLE IF NOT EXISTS category (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL,
-    is_dirty INTEGER DEFAULT 0,
+    is_dirty INTEGER DEFAULT 1,
+    uuid TEXT UNIQUE,
     UNIQUE(name) )
     `);
 
-  tx.executeSql(`CREATE TRIGGER IF NOT EXISTS category_auto_uuid
+  tx.executeSql(`
+    CREATE TRIGGER IF NOT EXISTS category_auto_uuid
     AFTER INSERT
     ON category
-    WHEN NEW.id IS NULL
+    WHEN NEW.uuid IS NULL
     BEGIN
-      UPDATE category SET id = (
+      UPDATE category SET uuid = (
         lower(hex(randomblob(4))) || '-' ||
         lower(hex(randomblob(2))) || '-4' ||
         substr(lower(hex(randomblob(2))), 2) || '-' ||
@@ -78,20 +83,21 @@ function createTables(tx) {
   console.log("'category' table created");
 
   tx.executeSql(`CREATE TABLE IF NOT EXISTS grocery (
-    id TEXT PRIMARY KEY,
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL,
-    category_id TEXT,
+    category_id INTEGER DEFAULT -1 REFERENCES category(id),
     to_be_bought INTEGER DEFAULT 0,
-    is_dirty INTEGER DEFAULT 0,
+    is_dirty INTEGER DEFAULT 1,
+    uuid TEXT UNIQUE,
     FOREIGN KEY (category_id) REFERENCES category(id) )
     `);
 
   tx.executeSql(`CREATE TRIGGER IF NOT EXISTS grocery_auto_uuid
     AFTER INSERT
     ON grocery
-    WHEN NEW.id IS NULL
+    WHEN NEW.uuid IS NULL
     BEGIN
-      UPDATE grocery SET id = (
+      UPDATE grocery SET uuid = (
         lower(hex(randomblob(4))) || '-' ||
         lower(hex(randomblob(2))) || '-4' ||
         substr(lower(hex(randomblob(2))), 2) || '-' ||
@@ -121,6 +127,11 @@ function createTables(tx) {
 
 // SEEDING TABLES
 function seedCategories(tx) {
+  tx.executeSql("INSERT INTO category (name, uuid, id) VALUES (?, ?, ?);",
+    ['no category', 'ffffffff-ffff-ffff-ffff-ffffffffffff', -1],
+    (tx) => { console.log(`'no category' seeded into category table.`);},
+    (tx, error) => { console.error(`Insert ERROR! Code: ${error.message}`);}
+  );
 
   const categories = [
     { name: 'fruits & légumes' },
@@ -129,15 +140,16 @@ function seedCategories(tx) {
     { name: 'épicerie salée' },
     { name: 'épicerie sucrée' },
     { name: 'crèmerie' },
-    { name: 'liquides' },
-    { name: 'traiteur' },
+    { name: 'liquides', uuid: 'c21e8701-0000-4000-8000-bacadac00001'  },
+    { name: 'traiteur', uuid: 'c21e8701-0000-4000-8000-bacadac00002'  },
     { name: 'bazar' },
     { name: 'textile' },
     { name: 'pet' }
   ];
 
   for (let category of categories) {
-    tx.executeSql("INSERT INTO category (name) VALUES (?);", [category.name],
+    tx.executeSql(`INSERT INTO category (name, uuid) VALUES (?, ?);`,
+      [category.name, category.uuid || null],
       function onInsertSuccess(tx) {
         console.log(`${category.name} seeded into category table.`)
       }, function onInsertError(tx, error) {
@@ -162,13 +174,13 @@ function seedGroceries(tx) {
     { name: 'sauce tartare', category: 'épicerie salée', to_be_bought: 0 },
     { name: 'sauce au poivre', category: 'épicerie salée', to_be_bought: 1 },
     { name: 'lait', category: 'crèmerie', to_be_bought: 1 },
-    { name: "jus d'orange", category: 'liquides', to_be_bought: 1 },
+    { name: "jus d'orange", category: 'liquides', to_be_bought: 1, uuid: 'c21e8701-0000-4000-8000-feacab000001' },
     { name: 'gâteaux', category: 'épicerie sucrée', to_be_bought: 1 },
-    { name: "pavés de saumon", category: 'traiteur', to_be_bought: 1 },
+    { name: "pavés de saumon", category: 'traiteur', to_be_bought: 1, uuid: 'c21e8701-0000-4000-8000-feacab000002' },
     { name: "piles", category: 'bazar', to_be_bought: 1 },
     { name: "drap", category: 'textile', to_be_bought: 1 },
     { name: "litière", category: 'pet', to_be_bought: 1 },
-    { name: "pâté de sureau", category: null, to_be_bought: 0 }
+    { name: "pâté de sureau", category: 'no category', to_be_bought: 0 }
   ];
 
   // CREATING A VIEW TO HANDLE THE ADDITION OF GROCERIES WITH TEXT IN CATEGORY ID
@@ -191,8 +203,15 @@ function seedGroceries(tx) {
     `);
 
   for (let grocery of groceries) {
-    tx.executeSql("INSERT INTO grocery_view (name, category_id, to_be_bought) VALUES (?, ?, ?);",
-      [grocery.name, grocery.category, grocery.to_be_bought],
+    tx.executeSql(`
+      INSERT INTO grocery_view (name, category_id, to_be_bought, uuid)
+      VALUES (?, ?, ?, ?);
+      `, [
+        grocery.name,
+        grocery.category,
+        grocery.to_be_bought,
+        grocery.uuid || null
+      ],
     function onInsertSuccess(tx) {
       console.log(`${grocery.name} inserted into grocery table.`)
     }, function onInsertError(tx, error) {

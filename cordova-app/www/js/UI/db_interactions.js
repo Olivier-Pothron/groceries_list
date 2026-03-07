@@ -45,19 +45,7 @@ function toggleToBeBoughtInDB(itemId, groceryElement, callback) {
 
 // DATABASE SYNCING
 
-function exportGroceriesToJSON() {
-  let data = loadGroceriesFromDB();
-  let jsonData = JSON.stringify(data);
-
-  return jsonData;
-}
-
-function exportCategoriesToJSON() {
-  let data = loadCategoriesFromDB();
-  let jsonData = JSON.stringify(data);
-
-  return jsonData;
-}
+// DATABASE SYNCING
 
 function sendTableData( JSONTable, endpoint, callback ) {
   const xhr = new XMLHttpRequest(); // Create a new XMLHttpRequest object
@@ -69,52 +57,139 @@ function sendTableData( JSONTable, endpoint, callback ) {
   xhr.onload = function() {
     if (xhr.status == 200) {
       const response = JSON.parse(xhr.responseText);
-      console.log("Server response : ", response);
-      if (callback) {
-        callback(xhr.status);
-      }
+      console.log("%cHttp response: ", 'color: blue;', xhr.status);
+      callback(null, response);
     } else {
       console.error("Error sending message with status: ", xhr.status);
+      callback(xhr.status, null);
     }
   }
 }
 
-function sync() {   // for testing purpose
-  const nowDate = "1999-01-20T14:22:53";
-  updateSyncDate(nowDate, (res) => {
-    console.log(res);
-  });
-  fetchTheDate((res) => {
-    console.log("Last sync date: ", res);
-  });
-}
+function syncCategoriesUp() {
+  console.log("%c\n<:: SYNC CATEGORIES UP REQUEST ::>\n",
+    'color: orange; text-decoration: underline;');
 
-/*
-// function first sends categories and then groceries if categories success
-function syncUpDatabase() {
-  const categoriesUrl =  "http://localhost:3000/api/sync/syncup/categories";
-  const categoriesJSONData = exportCategoriesToJSON();
-  console.log("Sending *categories* xml req.");
-
-  sendTableData( categoriesJSONData, categoriesUrl, function(response) {
-    if (response == 200) {
-      const groceriesUrl =  "http://localhost:3000/api/sync/syncup/groceries/";
-      const groceriesJSONData = exportGroceriesToJSON();
-      console.log("Sending *groceries* xml req.");
-
-      sendTableData( groceriesJSONData, groceriesUrl);
-    } else {
-      console.error("Error sending categories table");
+  getDirtyCategories( (error, dirtyCategories) => {
+    if(error) {
+      console.error("Error fetching dirtyCategories.");
+      return;
     }
+    console.log("%cFetching Dirty Categories: ",
+      'color: brown;', dirtyCategories);
+
+    const jsonSyncData = JSON.stringify({categories: dirtyCategories});
+    const syncEndPoint = "http://localhost:3000/api/sync/up/categories";
+
+    console.log("Sending *categories* xml req.");
+    sendTableData( jsonSyncData, syncEndPoint, (error, response) => {
+      if(error) {
+        console.error("Error sending categories: ", error);
+        return;
+      }
+      console.log("%c\n<:: RESPONSE ::>\n",
+        'color: mediumseagreen; text-decoration: underline;', response);
+
+      const {categories, uuidMap} = response;
+
+      updateCategoriesUuid(uuidMap, (error, updatedCategories) => {
+        if (error) {
+          console.error("Categories UUIDs update went wrong.", error);
+          return;
+        }
+        console.log("%cCategories UUIDs updated to cannonical ones: ",
+          'color: lightblue', updatedCategories);
+
+        addCategoriesFromServer(categories, (error, processedCategories) => {
+          if(error) {
+            console.error("ERROR ADDING CATEGORIES FROM SERVER!");
+            return;
+          }
+          console.log("%cCategories upserted to local db: ",
+            'color: lime;', processedCategories);
+        });
+      });
+    });
   });
 }
-*/
 
-// SYNC TEST :
+function pushGroceriesToServer( callback ) {
+   console.log("%c\n<:: SYNC GROCERIES UP REQUEST ::>\n",
+    'color: orange; text-decoration: underline;');
 
-// function syncGroceriesToServer(callback) {
-//   const groceriesToSend = [
-//     { newGroceryName: "portos", category: "alcool" },
-//     { newGroceryName: "aramis", category: "apéro"}
-//   ]
-// }
+  fetchTheDate( (error, lastSyncDate) => {
+    if(error) {
+      console.error("Error fetching sync date");
+      return;
+    }
+
+    getDirtyGroceries( (error, dirtyGroceries) => {
+      if(error) {
+        console.error("Error fetching dirty groceries");
+        return;
+      }
+      console.log("%cFetching Dirty Groceries: ",
+        'color: brown;', dirtyGroceries);
+
+      const jsonSyncData = JSON.stringify( {
+        groceries: dirtyGroceries,
+        lastSync: lastSyncDate
+      });
+      const syncEndPoint = "http://localhost:3000/api/sync/up/groceries";
+
+      console.log("Sending *groceries* xml req.");
+      sendTableData( jsonSyncData, syncEndPoint, (error, response) => {
+        if(error) {
+          console.error("Error sending groceries: ", error);
+          return;
+        }
+        console.log("%c\n<:: RESPONSE ::>\n",
+          'color: mediumseagreen; text-decoration: underline;', response);
+          callback(null, response);
+      });
+    });
+  });
+}
+
+function pullGroceriesFromServer( response, callback ) {
+  const {groceries, uuidMap, syncDate} = response;
+
+  updateGroceriesUuids( uuidMap, (error, success) => {
+    if(error) {
+      console.error("Groceries UUIDs update went wrong.", error);
+      return;
+    }
+    console.log("%cGroceries UUIDs updated to cannonical ones!",
+    'color: lightblue;');
+
+    addGroceriesFromServer( groceries, (error, processedGroceries) => {
+      if(error) {
+        console.error("Error adding groceries from server: ", error);
+        return;
+      }
+      console.log("%cGroceries from server upserted to local db: ",
+        'color: lime;', processedGroceries);
+
+      updateSyncDate(syncDate, (message) => {
+        console.log(`%c${message}`, 'color: teal;');
+        callback(null, true);
+      });
+    });
+  });
+}
+
+function syncGroceriesUp() {
+  pushGroceriesToServer((error, response) => {
+    if(error) {
+      console.error("Error pushing groceries: ", error);
+      return;
+    }
+    pullGroceriesFromServer( response, (error, success) => {
+      if(error) {
+        console.error("Error pulling groceries: ", error);
+        return;
+      }
+      console.log('%cGroceries sync complete!', 'color: green;');
+    })
+  })
+}

@@ -42,6 +42,7 @@ function createTables() {
     uuid TEXT UNIQUE,
     UNIQUE(name));
     `);
+    
   db.run(`CREATE TRIGGER IF NOT EXISTS category_auto_uuid
     AFTER INSERT
     ON category
@@ -152,8 +153,8 @@ function seedGroceries() {
 
   // CREATING A VIEW TO HANDLE THE ADDITION OF GROCERIES WITH TEXT IN CATEGORY ID
   // WITH AN 'INSTEAD OF' TRIGGER WITH WRITES ON THE GROCERY TABLE
-  db.exec(`CREATE VIEW grocery_view
-    AS SELECT * FROM grocery;`);
+  db.exec(`CREATE VIEW grocery_view AS SELECT * FROM grocery;`);
+
   db.exec(`CREATE TRIGGER grocery_no_cat_id
     INSTEAD OF INSERT ON grocery_view
     BEGIN
@@ -169,8 +170,10 @@ function seedGroceries() {
     END;
     `)
 
-  const stmt = db.prepare(`INSERT INTO grocery_view (name, category_id, to_be_bought, uuid)
-    VALUES (?, ?, ?, ?);`);
+  const stmt = db.prepare(`
+    INSERT INTO grocery_view (name, category_id, to_be_bought, uuid)
+    VALUES (?, ?, ?, ?);
+    `);
 
   for (let grocery of groceries) {
     stmt.run([

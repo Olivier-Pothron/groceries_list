@@ -7,8 +7,8 @@ const myGroceriesList = document.getElementById("my-groceries-list");
 
 const resetButton = document.getElementById("reset-button");
 const seedButton = document.getElementById("seed-button");
-const syncupButt = document.getElementById("syncup-button");
-const testButton = document.getElementById("test-button");
+const syncCatUpButt = document.getElementById("sync-categories-up-button");
+const syncGroUpButt = document.getElementById("sync-groceries-up-button");
 
 // CONSTANTS
 const collapseSign = '\u005E';

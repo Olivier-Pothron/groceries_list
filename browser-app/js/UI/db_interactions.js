@@ -1,5 +1,3 @@
-const { table } = require("node:console");
-
 console.log("'db_interactions.js' loaded.");
 
 function loadGroceriesFromDB(callback) {
@@ -105,13 +103,12 @@ function syncCategoriesUp() {
             console.error("ERROR ADDING CATEGORIES FROM SERVER!");
             return;
           }
-          console.log("%cCategories upserted to local db: ", 'color: lime;');
-          console.table(processedCategories);
+          console.log("%cCategories upserted to local db: ",
+            'color: lime;', processedCategories);
         });
       });
     });
   });
-  // 6. Update last_sync timestamp
 }
 
 function pushGroceriesToServer( callback ) {
@@ -169,8 +166,7 @@ function pullGroceriesFromServer( response, callback ) {
         return;
       }
       console.log("%cGroceries from server upserted to local db: ",
-        'color: lime;');
-      console.table(processedGroceries);
+        'color: lime;', processedGroceries);
 
       updateSyncDate(syncDate, (message) => {
         console.log(`%c${message}`, 'color: teal;');
