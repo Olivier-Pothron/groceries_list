@@ -104,11 +104,13 @@ const validateCategoryInput = () => {
 //Process Form Submission helper
 const processFormSubmission = (itemName, categoryId, categoryName, categoryType) => {
   if (categoryType === 'custom') {
+    console.log("processFormSubmission (custom): ", itemName, categoryId, categoryName);
     handleCustomCategory(categoryName, (newCategoryId) => {
       handleGroceryAddition(itemName, newCategoryId, categoryName, (groceryObject) => {
         const newCategory = createCategoryElement(categoryName, [groceryObject]); // also add the new grocery element
         allGroceriesList.appendChild(newCategory);
         console.log("%cSubmission completed!", 'color: green;');
+        modalContent.classList.remove('keyboard-open');
         window.location.hash = ''; //close the modal
       });
     });
@@ -123,6 +125,7 @@ const processFormSubmission = (itemName, categoryId, categoryName, categoryType)
         existingCategoryList.appendChild(newGrocery);
       }
       console.log("%cSubmission completed!", 'color: green;');
+      modalContent.classList.remove('keyboard-open');
       window.location.hash = ''; //close the modal
     });
   }
@@ -228,5 +231,17 @@ categorySelector.addEventListener("change", () => {
     hideValidationIcon(categorySelector);
   } else {
     customCategoryInput.style.display = "none";
+  }
+});
+
+addNewItemForm.addEventListener('focusin', (event) => {
+  if (event.target.tagName === 'INPUT') {
+    modalContent.classList.add('keyboard-open');
+  }
+});
+
+addNewItemForm.addEventListener('focusout', (event) => {
+  if (event.target.tagName === 'INPUT') {
+    modalContent.classList.remove('keyboard-open');
   }
 });

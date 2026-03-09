@@ -113,6 +113,7 @@ function renderCategorySelectorOptions(arrayOfCategories) {
   categorySelector.add(disabledOption, 0);
 
   for(category of arrayOfCategories) {
+    if (category.name === 'no category') continue;
     const categoryOption = document.createElement("option");
     // console.log("rendercategory ID: ", category.id);
     categoryOption.setAttribute('data-category-id', category.id);

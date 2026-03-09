@@ -39,17 +39,17 @@ function getCategories(callback) {
 function addCategory (name, categoryUUID, callback) {
 
   db.transaction(function(tx) {
-    let query = "INSERT INTO category (name, id) VALUES (?, ?)"
+    let query = "INSERT INTO category (name, uuid) VALUES (?, ?)"
     tx.executeSql(query, [name, categoryUUID],
       function(tx, result) {
         console.log(`%cCategory "${name}" added with ID ${result.insertId}`, 'color: green;');
 
-        if (callback) callback(null, result.insertId);
+        callback(null, result.insertId);
       },
       function(tx, error) {
         console.error('Insert ERROR : ' + error.message);
 
-        if (callback) callback(error, null);
+        callback(error, null);
       }
     );
   }, function onTransactionError(error) {
@@ -529,7 +529,6 @@ function fetchTheDate(callback) {
 }
 
 // #endregion
-
 
 
 
