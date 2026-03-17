@@ -169,6 +169,20 @@ header.sticky {
   font-style: italic;
 }
 
+#log-container {
+  display: flex;
+  text-align: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 4px;
+}
+
+#log-container p {
+  overflow: hidden;
+  margin: 0;
+  transition: height 1s ease, opacity 1s ease;
+}
+
 .link {
   padding: 4px;
   display: inline-block;

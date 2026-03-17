@@ -10,11 +10,13 @@ const userLog = (message, type) => {                                            
     warning: "orange"
   }[type];
   let log = document.createElement("p");
+  log.style.opacity = 0;
   log.textContent = `${message}`;
   log.style.color = logColor;
 
   // Insert the new log at the beginning of the log container
   logContainer.insertBefore(log, logContainer.firstChild);
+  log.opacity = 1;
 
   let logsCollection = logContainer.getElementsByTagName("p");
   if (logsCollection.length > 3) {

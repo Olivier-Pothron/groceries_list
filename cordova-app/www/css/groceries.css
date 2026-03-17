@@ -169,6 +169,10 @@ header.sticky {
   font-style: italic;
 }
 
+#log-container p {
+  transition: opacity 2s ease;
+}
+
 .link {
   padding: 4px;
   display: inline-block;
