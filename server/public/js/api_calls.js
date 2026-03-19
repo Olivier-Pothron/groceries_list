@@ -1,6 +1,6 @@
 console.log("'api_calls.js' loaded.");
 
-function addCategory (name) {       // ✓
+function addCategory (name) {
   return fetch(`api/categories/`, {
     method: "POST",
     headers: {
@@ -10,18 +10,23 @@ function addCategory (name) {       // ✓
   })
   .then(response => {
     if(!response.ok) {
-      throw new Error(`HTTP error! Status: ${response.status}`);
+      return response.json().then( err => {
+        throw new Error(err.error || `HTTP error! Status: ${response.status}`);
+      });
     }
     return response.json();
   })
   .then(data => {
-    console.log("addCategory API call: ", data);
+    console.log("<API CALL> addCategory: ", data);
     return data;
   })
-  .catch(error => console.error("Error adding category:", error));
+  .catch(error => {
+    console.error("Error adding category:", error);
+    throw error;
+  })
 };
 
-function addGrocery (name, categoryId) {  // ✓
+function addGrocery (name, categoryId) {
   return fetch(`api/groceries/`, {
     method: "POST",
     headers: {
@@ -33,15 +38,16 @@ function addGrocery (name, categoryId) {  // ✓
     if(!response.ok) {
       return response.json().then( err => {
         throw new Error(err.error || `HTTP error! Status: ${response.status}`);
-      })
+      });
     }
     return response.json();
   })
   .then(data => {
+    console.log("<API CALL> addGrocery: ", data);
     return data;
   })
   .catch(error => {
-    // console.error("<API CALL> Error adding grocery:", error.message);
+    console.error("<API CALL> Error adding grocery:", error.message);
     throw error;
   });
 }
@@ -54,36 +60,34 @@ function deleteGrocery (groceryId) {
     if(!response.ok) {
       return response.json().then( err => {
         throw new Error(err.error || `HTTP error! Status: ${response.status}`);
-      })
+      });
     }
-    return response;
+    return response.json();
   })
   .catch(error => {
-    console.log("Error deleting grocery:", error.message);
+    console.log("<API CALL> Error deleting grocery:", error.message);
+    throw error;
   })
 }
 
-function toggleToBeBoughtInDB(element) {  // ✓
-  const groceryName = element.dataset.name;
-  const groceryId = element.dataset.id;
-  const toBeBoughtState = element.dataset.toBeBought;
-  const newToBeBoughtState = toBeBoughtState == '0' ? 1 : 0;
-
-  fetch(`api/groceries/${groceryId}`, {
-    method: "PUT",
+function toggleToBeBoughtInDB(groceryId, newToBeBoughtState) {
+  return fetch(`api/groceries/${groceryId}`, {
+    method: "PATCH",
     headers: {
       "Content-type": "application/json"
     },
     body: JSON.stringify({ toBeBought: newToBeBoughtState })
   })
   .then(response => {
-    if (response.ok) {  // Update client side
-      element.dataset.toBeBought = newToBeBoughtState;
-      element.classList.toggle("to-be-bought");
-      userLog(`${groceryName} to_be_bought state updated to ${newToBeBoughtState}`, 'success');
-    } else {
-      console.error("Error updating to_be_bought value!");
+    if (!response.ok) {
+      return response.json().then( err => {
+        throw new Error(err.error || `HTTP error! Status: ${response.status}`);
+      });
     }
+    return response.json();
   })
-  .catch(error => console.error("Error updating grocery:", error));
+  .catch(error => {
+    console.error("<API CALL> Error updating grocery:", error);
+    throw error;
+  })
 }
