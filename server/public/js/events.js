@@ -20,7 +20,7 @@ allGroceriesList.addEventListener("click", (event) => {
   // TOGGLING GROCERY TO_BE_BOUGHT STATE
   const groceryElement = event.target.closest(".grocery-element");              // get clicked grocery element
   if (groceryElement) {
-    toggleToBeBoughtInDB(groceryElement);                                       // in api_calls
+    handleToBeBought(groceryElement);                                           // in handlers.js
   }
 
   // TOGGLING DISPLAY OF CATEGORY LIST
@@ -30,20 +30,4 @@ allGroceriesList.addEventListener("click", (event) => {
     const categoryButton = categoryHeader.querySelector('.category-button');
     groceriesDropDown(groceriesList, categoryButton);
   }
-});
-
-// TEST BUTTON
-// testButt.addEventListener("click", () => {
-//   const groceryArray = ["nono", "bobo", "coco", "lolo", "momo", "popo", "roro", "toto", "koko", "soso"];
-//   const randomItem = groceryArray[Math.floor(Math.random() * 10) + 1];
-//   const randomCat = Math.floor(Math.random() * 10) + 1;
-//   console.log(`Grocery: ${randomItem} / Cat_id: ${randomCat}`);
-//   addGrocery (randomItem, randomCat);
-// });
-testButt.addEventListener("click", () => {
-  const groceryArray = ["nono", "bobo", "coco", "lolo", "momo", "popo", "roro", "toto", "koko", "soso"];
-  const randomItem = groceryArray[Math.floor(Math.random() * 10)];
-  const randomCat = Math.floor(Math.random() * 10);
-  console.log(`Grocery: ${randomItem} / Cat_id: ${randomCat}`);
-  handleGroceryAddition (randomItem, 3);
 });

@@ -1,43 +1,41 @@
 console.log("'ui_updates.js' loaded.");
 
 // ADD CATEGORY TO SELECTOR
-function addCategoryToSelector(newCategory, newCategoryId) {
-  console.log(`=> addCategoryToSelector : ${newCategory} id : ${newCategoryId}`);
+function addCategoryToSelector(category) {
+  const { name, id } = category;
+
+  console.log(`=> addCategoryToSelector : ${name} id : ${id}`);
 
   newSelectorOption = document.createElement("option");
-  newSelectorOption.setAttribute('data-id', newCategoryId);
-  newSelectorOption.textContent = newCategory;
-  newSelectorOption.value = newCategory;
+  newSelectorOption.setAttribute('data-id', id);
+  newSelectorOption.textContent = name;
+  newSelectorOption.value = name;
 
   categorySelector.add(newSelectorOption, categorySelector.options.length - 1);
 }
 
 // ADD CATEGORY TO MASTER LIST
-function addCategoryToList(categoryName) {
+function addCategoryToList(category) {
+  const categoryName = category.name;
+
   const newCategory = createCategoryElement(categoryName);
   categoriesList.appendChild(newCategory);
   return newCategory;
 }
 
 // ADD GROCERY TO GROCERIES LIST
-function addGroceryToGroceriesList(groceryObject) {
-  const newGrocery = createGroceryElement(groceryObject);
-  const categoryQuery = `[data-name="${groceryObject.category}"]`;
+function addGroceryToGroceriesList(grocery) {
+  const groceryElement = createGroceryElement(grocery);
+  const categoryQuery = `[data-name="${grocery.category}"]`;
   let category = categoriesList.querySelector(categoryQuery);
 
-  if(!category) { // if category not in the UI
-    const categoryExists = categorySelector.querySelector(`option[value="${groceryObject.category}"]`);
-
-    if(categoryExists) {
-      category = addCategoryToList(categoryExists.value);
-    } else {
-      // when adding the first grocery without a category
-      category = addCategoryToList("no category");
-    }
+  if(!category) {
+    // passing a made-up 'category object' to feed the function
+    category = addCategoryToList({ name: grocery.category });
   }
 
   const groceriesList = category.querySelector("ul");
-  groceriesList.appendChild(newGrocery);
+  groceriesList.appendChild(groceryElement);
 
   // ensures a list drops down on addition of new grocery
   if (!groceriesList.classList.contains("visible")) {
@@ -49,7 +47,9 @@ function addGroceryToGroceriesList(groceryObject) {
 }
 
 // CREATE ELEMENTS \\
-function createCategoryElement(categoryName) {
+function createCategoryElement(category) {
+  const categoryName = category.name;
+
   const categoryElement = document.createElement("li");
   categoryElement.classList.add("category-element");
 

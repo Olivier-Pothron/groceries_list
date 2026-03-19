@@ -55,20 +55,14 @@ const processFormSubmission = (itemName, categoryId, categoryName, categoryType)
     })
     .then(groceryObject => {
       console.log("Grocery obj in #custom modal form: ", groceryObject);
-      addGroceryToGroceriesList(groceryObject);
     })
-    .catch(error => {
-      console.error("Error adding grocery:", error);
-    })
+    .catch(error => console.error("Error adding grocery:", error));
   } else {
     handleGroceryAddition(itemName.toLowerCase(), categoryId)
     .then(groceryObject => {
       console.log("Grocery obj in modal form: ", groceryObject);
-      addGroceryToGroceriesList(groceryObject);
     })
-    .catch(error => {
-      console.error("<FORMPROCESS> Error adding grocery:", error);
-    })
+    .catch(error => console.error("<FORMPROCESS> Error adding grocery:", error));
   }
 }
 
@@ -81,7 +75,7 @@ window.addEventListener("hashchange", () => {
 });
 
 //Shows or hides custom category input field
-categorySelector.addEventListener("change", () => {       // ✓
+categorySelector.addEventListener("change", () => {
   selectedOption = categorySelector.value;
 
   if (selectedOption === "custom") {
