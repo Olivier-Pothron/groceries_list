@@ -65,8 +65,6 @@ app.get('/', (req, res) => {
 app.get('/test', (req, res) => {
   res.send('TEST OK');
   console.log("__dirname : ", __dirname);
-  console.log("whateverthefuck");
-
 });
 
 app.get('/admin', (req, res) => {
@@ -79,7 +77,7 @@ app.get('/admin', (req, res) => {
   }
 });
 
-app.get('/groceries', (req, res, next) => {
+app.get('/groceries', async(req, res, next) => {
   let query = `
       SELECT  g_list.id,
               g_list.name AS name,
@@ -91,52 +89,48 @@ app.get('/groceries', (req, res, next) => {
       ON      g_list.category_id = g_cat.id;
       `;
 
-  mysqlPool.query(query, (err, results) => {
-    if (err) {
-      console.error('Error executing query:', err.code);
-      if(err.code == "ER_ACCESS_DENIED_ERROR") {
-        return res.status(500).send("Cannot access database");
+  try {
+    const [results] = await mysqlPool.promise().query(query);
+
+    const { groceriesByCategory, categoriesIdMap } = results.reduce( (acc, grocery) => {
+      const  { name, category: categoryName, category_id } = grocery;
+
+      if(!acc.categoriesIdMap[categoryName]) {
+        acc.categoriesIdMap[categoryName] = category_id
       }
-      return next(err);
-    }
 
-    // /!\ MAYBE PUT TWO MAPS IN A SINGLE LOOP ITERATING OVER RESULTS ? /!\
-
-    // Maps existing groceries by categories
-    const groceriesByCategory = results.reduce( (acc, grocery) => {
-      const categoryKey = grocery.category;
-      if(grocery.name) {
-        if(!acc[categoryKey]) {
-          acc[categoryKey] = [];
+      if (name) {
+        if (!acc.groceriesByCategory[categoryName]) {
+          acc.groceriesByCategory[categoryName] = [];
         }
-        acc[categoryKey].push(grocery);
+        acc.groceriesByCategory[categoryName].push(grocery);
       }
-      return acc;
-    }, {});
 
-    // Maps all categories to their respective ID
-    const categoriesIdMap = results.reduce( (acc, grocery) => {
-      const categoryName = grocery.category;
-      const categoryId = grocery.category_id;
-      if(!acc[categoryName]) {
-        acc[categoryName] = categoryId;
-      }
       return acc;
-    }, {});
+    }, { groceriesByCategory: {}, categoriesIdMap: {} } );
+
+    console.log(groceriesByCategory);
 
     res.render('groceries', { groceries: groceriesByCategory, categories: categoriesIdMap });
     console.log("Loaded groceries page.");
-  });
+
+  } catch (error) {
+    console.log('Error getting groceries: ', error);
+    return next(error);
+  }
 });
 
-app.get('/myList', (req, res) => {
-  mysqlPool.query('SELECT * FROM grocery WHERE to_be_bought = 1', (err, results, fields) => {
-    if (err) {
-      console.error('Error executing query:', err);
-      return next(err);
-    }
+app.get('/myList', async(req, res, next) => {
+  let query = 'SELECT * FROM grocery WHERE to_be_bought = 1';
+
+  try {
+    const [results] = await mysqlPool.promise().query(query);
+
     res.json(results);
-  });
+  } catch (error) {
+    console.log('Error getting groceries: ', error);
+    return next(error);
+  }
 });
 
 // Error handling middleware
@@ -146,15 +140,21 @@ app.use((err, req, res, next) => {
 });
 
 // Handle graceful shutdown
-process.on('SIGINT', () => {
+let isShuttingDown = false;
+
+process.on('SIGINT', async() => {
+  if (isShuttingDown) return;
+  isShuttingDown = true;
+
   console.log('Received SIGINT. Closing MySQL connection pool...');
-  mysqlPool.end((err) => {
-    if (err) {
-      console.error('Error closing MySQL connection pool:', err);
-    }
+  try {
+    await mysqlPool.end();
     console.log('MySQL connection pool closed.');
-    process.exit(0); // Exit the process after closing the connection pool
-  });
+    process.exit(0);
+  } catch (err) {
+    console.error('Error closing MySQL connection pool:', err);
+    process.exit(1);
+  }
 });
 
 const PORT = process.env.PORT || 3000;

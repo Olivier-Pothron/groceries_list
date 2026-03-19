@@ -5,17 +5,7 @@ const router = express.Router();
 const mysqlPool = require('../db');
 
 // GET CATEGORIES
-// router.get('/', (req, res, next) => {
-//   mysqlPool.query('SELECT * FROM category', (err, results, fields) => {
-//     if (err) {
-//       console.error('Error executing query:', err);
-//       return next(err);
-//     }
-//     res.json(results);
-//   });
-// });
-
-router.get('/', async (req, res, next) => {
+router.get('/', async(req, res, next) => {
   try {
     const [results] = await mysqlPool.promise().query('SELECT * FROM category');
     res.json(results);
@@ -26,7 +16,7 @@ router.get('/', async (req, res, next) => {
 });
 
 // ADD CATEGORY
-router.post('/', (req, res) => {
+router.post('/', async(req, res) => {
   const { newCategoryName } = req.body;
 
   // Validate categoryName is not empty
@@ -35,22 +25,11 @@ router.post('/', (req, res) => {
   }
 
   const insertQuery = 'INSERT INTO category(name) VALUES (?) RETURNING id';
-  mysqlPool.query(insertQuery, [newCategoryName.toLowerCase()], (err, insertResults) => {
-    if (err) {
-      if (err.code === 'ER_DUP_ENTRY') {
-        res.status(409).json( { error: 'Category already exists!'});
-        console.error(err.code, 'Error: Category already exists!', );
-      } else {
-        res.status(500).json({ error: 'Database error' });
-      }
-      return;
-    }
 
-    console.log("Insert category result from server: ", insertResults[0].id);
+  try {
+    const [insertResults] = await mysqlPool.promise().query(insertQuery, [newCategoryName.toLowerCase()]);
 
     const newCategoryId = insertResults[0].id;
-
-    console.log("NewcategoryId from the server: ", newCategoryId);
 
     const newCategory = { id: newCategoryId,
                           name: newCategoryName.toLowerCase()};
@@ -58,42 +37,54 @@ router.post('/', (req, res) => {
     // Formatting the request time to a more readable format
     const formattedRequestTime = new Date(req.requestTime).toLocaleString();
 
-    console.log(`${newCategoryName.toLowerCase()} inserted into category List with `+
+    console.log(`${newCategoryName.toLowerCase()} inserted into category table with `+
                 `ID ${newCategoryId} ` +
                 `at ${formattedRequestTime}`);
+
     res.status(200).json(newCategory);
-  });
+  } catch (error) {
+    if (error.code === 'ER_DUP_ENTRY') {
+      console.error(error.code, 'Error: Category already exists!', );
+      res.status(409).json( { error: 'Category already exists!'});
+    } else {
+      console.log('Error adding category: ', error);
+      res.status(500).json({ error: 'Database error' });
+    }
+  }
 });
 
-// DELETE CATEGORY          /!\ DOESN'T SEEM TO WORK IN POSTMAN /!\
-router.delete('/:id', (req, res) => {
+router.delete('/:id', async(req, res) => {
   const id = req.params.id;
-  let categoryName = "";
+
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  if (!uuidRegex.test(id)) {
+  return res.status(400).json({ error: 'Invalid ID format' });
+  }
 
   const nameQuery = 'SELECT name FROM category WHERE id = ?';
-  mysqlPool.query(nameQuery, [id], (err, results) => {
-    if (err) {
-      console.error('Error executing query:', err);
-      res.status(500).json({ error: 'Database error' });
-      return;
-    }
-    categoryName = results[0].name;
-  });
-
-  // Formatting the request time to a more readable format
-  const formattedRequestTime = new Date(req.requestTime).toLocaleString();
-
   const deleteQuery = 'DELETE FROM category WHERE id = ?';
-  mysqlPool.query(deleteQuery, [id], (err, results) => {
-    if (err) {
-      console.error('Error executing query:', err);
-      res.status(500).json({ error: 'Database error' });
-      return;
+
+  try {
+    const [nameResult] = await mysqlPool.promise().query(nameQuery, [id]);
+
+    if (!nameResult.length) {
+    return res.status(404).json({ error: 'Category not found' });
     }
+
+    const categoryName = nameResult[0].name;
+
+    await mysqlPool.promise().query(deleteQuery, [id]);
+
+    // Formatting the request time to a more readable format
+    const formattedRequestTime = new Date(req.requestTime).toLocaleString();
+
     console.log(`${categoryName} (id#${id}) removed from list at `+
                 `${formattedRequestTime}`);
     res.status(200).json({ success: true });
-  });
+  } catch (error) {
+    console.log("Error deleting category: ", error);
+    res.status(500).json({ error: 'Database error' });
+  }
 });
 
 // Export the router so it can be used in server.js
