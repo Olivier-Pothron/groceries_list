@@ -20,155 +20,139 @@ router.get("/", (req, res, next) => {
 });
 
 // ADD GROCERY
-router.post("/", (req, res) => {
-
-  //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  // <!> BELOW IS FOR HANDLING WITHOUT JAVASCRIPT <!>
-  // const contentType = req.headers['content-type'];
-  // if (contentType.includes('application/x-www-form-urlencoded')) {
-  //   newGroceryName = req.body.newGroceryName;
-  //   categoryId = req.body.categoryId;
-  // } else {
-  //   ({ newGroceryName, categoryId } = req.body);
-  // }
-  //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
+router.post('/', async(req, res) => {
   let { newGroceryName, categoryId } = req.body;
 
-  console.log("New Grocery Name from request: ", newGroceryName);
-  console.log("Catgegory ID from request: ", categoryId);
-
-  categoryId = categoryId || null;
-
-  // Validate newGroceryName is not empty
   if (!newGroceryName) {
     return res.status(400).json({ error: "Item name is required" });
   }
+  categoryId = categoryId || null;
 
-  const insertQuery =
-    "INSERT INTO grocery(name, category_id) VALUES (?, ?) RETURNING id";
-  mysqlPool.query(
-    insertQuery,
-    [newGroceryName.toLowerCase(), categoryId],
-    (err, insertResults) => {
-      if (err) {
-        console.error("Error executing query:", err);
-        if (err.code === "ER_DUP_ENTRY") {
-          res
-            .status(409)
-            .json({ error: "Grocery already exists in category!" });
-        } else {
-          res.status(500).json({ error: "Database error" });
-        }
-        return;
+  const insertQuery = `
+    INSERT INTO grocery(name, category_id)
+    VALUES (?, ?)
+    RETURNING id;
+    `;
+
+  const returnQuery = `
+    SELECT
+    g.id,
+    g.name,
+    c.name AS category,
+    c.id AS category_id
+    FROM grocery AS g
+    LEFT JOIN category AS c
+    ON g.category_id = c.id
+    WHERE g.id = ?;
+    `;
+
+    try {
+      const params = [newGroceryName, categoryId];
+      const [insertResults] = await mysqlPool.promise().query(insertQuery, params);
+
+      const insertId = insertResults[0].id
+      const [returnResult] = await mysqlPool.promise().query(returnQuery, insertId);
+
+      const { name, id, category, category_id } = returnResult[0];
+      const newGrocery = {
+        id: id,
+        name: name,
+        toBeBought: 0,
+        category: category,
+        categoryId: category_id
       }
 
-      const newItemId = insertResults[0].id;
+      // Formatting the request time to a more readable format
+      const formattedRequestTime = new Date(req.requestTime).toLocaleString();
 
-      const responseQuery = `SELECT g.id, g.name, g.to_be_bought,
-                          c.name AS category, c.id AS category_id
-                          FROM grocery AS g
-                          LEFT JOIN category AS c
-                          ON g.category_id = c.id
-                          WHERE g.id = ?;
-                          `;
-      mysqlPool.query(responseQuery, [newItemId], (err, queryResults) => {
-        if (err) {
-          console.error("Error executing query:", err);
-          res.status(500).json({ error: "Database error" });
-          return;
-        }
+      console.log(
+        `${newGrocery.name} inserted into grocery List with ` +
+        `ID ${newGrocery.id} and Category ${newGrocery.category} ` +
+        `at ${formattedRequestTime}`
+      );
 
-        const categoryName = queryResults[0].category;
-        const categoryId = queryResults[0].category_id;
-        console.log("Category id from grocerie insert: ", categoryId);
-        console.log("Category Name from grocerie insert: ", categoryName);
-        const newItem = {
-          id: newItemId,
-          name: newGroceryName,
-          category: categoryName,
-          category_id: categoryId,
-          to_be_bought: 0,
-        };
-
-        // Formatting the request time to a more readable format
-        const formattedRequestTime = new Date(req.requestTime).toLocaleString();
-
-        console.log(
-          `${newGroceryName} inserted into grocery List with ` +
-            `ID ${newItemId} and Category ${categoryName} ` +
-            `at ${formattedRequestTime}`
-        );
-        res.status(200).json(newItem);
-      });
-    }
-  );
+      res.status(200).json(newGrocery);
+  } catch (error) {
+    console.log('Error adding grocery: ', error);
+    res.status(500).json({ error: 'Database error' });
+  }
 });
 
 // DELETE GROCERY
-router.delete("/:id", (req, res) => {
-  const id = req.params.id;
-  let itemName = "";
+router.delete('/:id', async(req, res) => {
+  const groceryId = req.params.id;
 
-  const nameQuery = "SELECT name FROM grocery WHERE id = ?";
-  mysqlPool.query(nameQuery, [id], (err, results) => {
-    if (err) {
-      console.error("Error executing query:", err);
-      res.status(500).json({ error: "Database error" });
-      return;
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  if (!uuidRegex.test(groceryId)) {
+  return res.status(400).json({ error: 'Invalid ID format' });
+  }
+
+  const nameQuery = `
+  SELECT
+  g.name,
+  c.name AS category
+  FROM grocery AS g
+  JOIN category AS c
+  ON g.category_id = c.id
+  WHERE g.id = ?;
+  `
+  const deleteQuery = "DELETE FROM grocery WHERE id = ?";
+
+  try {
+    const [nameResult] = await mysqlPool.promise().query(nameQuery, groceryId);
+
+    if (!nameResult.length) {
+      return res.status(404).json({error: 'grocery not found!' });
     }
-    itemName = results[0].name;
+
+    const { name: groceryName, category } = nameResult[0];
+
+    await mysqlPool.promise().query(deleteQuery, groceryId);
 
     // Formatting the request time to a more readable format
     const formattedRequestTime = new Date(req.requestTime).toLocaleString();
 
-    const deleteQuery = "DELETE FROM grocery WHERE id = ?";
-    mysqlPool.query(deleteQuery, [id], (err, results) => {
-      if (err) {
-        console.error("Error deleting row:", err);
-        res.status(500).json({ error: "Database error" });
-        return;
-      }
-      console.log(
-        `${itemName} (id#${id}) removed from list at ` +
-          `${formattedRequestTime}`
-      );
-      res.status(200).json({ success: true });
-    });
-  });
+    console.log(
+      `${groceryName} (id#${groceryId}) from category ${category} ` +
+      `removed from list at${formattedRequestTime}`
+    );
+    res.status(200).json({ success: true });
+  } catch (error) {
+    console.log('Error deleting grocery: ', error);
+    res.status(500).json({ error: 'Database error' });
+  }
 });
 
 // TOGGLE TO_BE_BOUGHT VALUE
-router.put("/:id", (req, res) => {
-  const id = req.params.id;
+router.patch('/:id', async(req, res) => {
+  const groceryId = req.params.id;
   const { toBeBought } = req.body;
 
-  // Check if id exists in the database
-  const idQuery = "SELECT id FROM grocery WHERE id = ?";
-  mysqlPool.query(idQuery, [id], (err, results) => {
-    if (err) {
-      console.error("Error executing query:", err);
-      res.status(500).json({ error: "Database error" });
-      return;
-    }
-    if (!results.length) {
-      res.status(404).json({ error: "Item not found" });
-      return;
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  if (!uuidRegex.test(groceryId)) {
+  return res.status(400).json({ error: 'Invalid ID format' });
+  }
+
+  const nameQuery = `SELECT name FROM grocery WHERE id = ?`
+  const updateQuery = 'UPDATE grocery SET to_be_bought = ? WHERE id = ?;';
+
+  try {
+    const [nameResult] = await mysqlPool.promise().query(nameQuery, groceryId);
+    const groceryName = nameResult[0].name;
+
+    const params = [toBeBought, groceryId];
+    const [updateResults] = await mysqlPool.promise().query(updateQuery, params);
+
+    if (updateResults.affectedRows === 0) {
+      return res.status(404).json({error: 'grocery not found'});
     }
 
-    // Update the to_be_bought value
-    const updateQuery =
-      "UPDATE grocery SET to_be_bought = ? WHERE id = ?";
-    mysqlPool.query(updateQuery, [toBeBought, id], (err, results) => {
-      if (err) {
-        console.error("Error executing query:", err);
-        res.status(500).json({ error: "Database error" });
-        return;
-      }
-      console.log(`Item #${id} / To be bought : ${toBeBought}`);
-      res.status(200).json({ success: true });
-    });
-  });
+    console.log(`${groceryName} / To be bought : ${toBeBought}`);
+    res.status(200).json({ success: true });
+  } catch (error) {
+    console.error("Error updating grocery:", error);
+    res.status(500).json({ error: "Database error" });
+  }
 });
 
 // Export the router so it can be used in server.js
