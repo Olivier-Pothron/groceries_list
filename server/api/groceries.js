@@ -126,29 +126,33 @@ router.delete('/:id', async(req, res) => {
 // TOGGLE TO_BE_BOUGHT VALUE
 router.patch('/:id', async(req, res) => {
   const groceryId = req.params.id;
-  const { toBeBought } = req.body;
 
   const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
   if (!uuidRegex.test(groceryId)) {
   return res.status(400).json({ error: 'Invalid ID format' });
   }
 
-  const nameQuery = `SELECT name FROM grocery WHERE id = ?`
-  const updateQuery = 'UPDATE grocery SET to_be_bought = ? WHERE id = ?;';
+  const selectQuery = `SELECT name, to_be_bought FROM grocery WHERE id = ?`
+  const updateQuery = `
+    UPDATE grocery
+    SET to_be_bought = NOT to_be_bought
+    WHERE id = ?;`
+    ;
 
   try {
-    const [nameResult] = await mysqlPool.promise().query(nameQuery, groceryId);
-    const groceryName = nameResult[0].name;
+    const [nameResult] = await mysqlPool.promise().query(selectQuery, groceryId);
+    let { name: groceryName, to_be_bought: toBeBought } = nameResult[0];
 
-    const params = [toBeBought, groceryId];
-    const [updateResults] = await mysqlPool.promise().query(updateQuery, params);
+    const [updateResults] = await mysqlPool.promise().query(updateQuery, groceryId);
 
     if (updateResults.affectedRows === 0) {
       return res.status(404).json({error: 'grocery not found'});
     }
 
+    toBeBought = toBeBought ? 0 : 1;
+
     console.log(`${groceryName} / To be bought : ${toBeBought}`);
-    res.status(200).json({ success: true });
+    res.status(200).json({ toBeBought });
   } catch (error) {
     console.error("Error updating grocery:", error);
     res.status(500).json({ error: "Database error" });

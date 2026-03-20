@@ -56,11 +56,10 @@ function deleteGroceryElement(groceryElement) {
 function handleToBeBought(groceryElement) {
   const groceryName = groceryElement.dataset.name;
   const groceryId = groceryElement.dataset.id;
-  const toBeBoughtState = groceryElement.dataset.toBeBought;
-  const newToBeBoughtState = toBeBoughtState == '0' ? 1 : 0;
 
-  toggleToBeBoughtInDB(groceryId, newToBeBoughtState)
+  toggleToBeBoughtInDB(groceryId)
   .then(response => {
+    const newToBeBoughtState = response.toBeBought;
     groceryElement.dataset.toBeBought = newToBeBoughtState;
     groceryElement.classList.toggle("to-be-bought");
     console.log(`${groceryName} to_be_bought state updated to ${newToBeBoughtState}`);
