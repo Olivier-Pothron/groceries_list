@@ -70,13 +70,9 @@ function deleteGrocery (groceryId) {
   })
 }
 
-function toggleToBeBoughtInDB(groceryId, newToBeBoughtState) {
+function toggleToBeBoughtInDB(groceryId) {
   return fetch(`api/groceries/${groceryId}`, {
     method: "PATCH",
-    headers: {
-      "Content-type": "application/json"
-    },
-    body: JSON.stringify({ toBeBought: newToBeBoughtState })
   })
   .then(response => {
     if (!response.ok) {
