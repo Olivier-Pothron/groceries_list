@@ -44,35 +44,35 @@ function toggleToBeBoughtInDB(itemId, groceryElement, callback) {
 }
 
 // DATABASE SYNCING
+function sendTableData( JSONTable, endpoint) {
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest(); // Create a new XMLHttpRequest object
+    xhr.open("POST", endpoint, true); // Set the request up
+    xhr.setRequestHeader("Content-type", "application/json"); // Set content type as JSON
 
-function sendTableData( JSONTable, endpoint, callback ) {
-  const xhr = new XMLHttpRequest(); // Create a new XMLHttpRequest object
-  xhr.open("POST", endpoint, true); // Set the request up
-  xhr.setRequestHeader("Content-type", "application/json"); // Set content type as JSON
-  xhr.send(JSONTable); // Send the fucker !
-
-  // Set up the onload event to handle the response
-  xhr.onload = function() {
-    if (xhr.status == 200) {
-      const response = JSON.parse(xhr.responseText);
-      console.log("%cHttp response: ", 'color: blue;', xhr.status);
-      callback(null, response);
-    } else {
-      console.error("Error sending message with status: ", xhr.status);
-      callback(xhr.status, null);
+    // Set up the onload event to handle the response
+    xhr.onload = () => {
+      if (xhr.status == 200) {
+        const response = JSON.parse(xhr.responseText);
+        console.log("%cHttp response: ", 'color: blue;', xhr.status);
+        resolve(response);
+      } else {
+        const err = new Error("Error sending categories");
+        err.original = xhr.status;
+        reject(err);
+      }
     }
-  }
+    xhr.onerror = () => reject(new Error("Network error while sending categories"));
+    xhr.send(JSONTable); // Send the fucker !
+  })
 }
 
-function syncCategoriesUp() {
+async function syncCategoriesUp() {
   console.log("%c\n<:: SYNC CATEGORIES UP REQUEST ::>\n",
     'color: orange; text-decoration: underline;');
 
-  getDirtyCategories( (error, dirtyCategories) => {
-    if(error) {
-      console.error("Error fetching dirtyCategories.");
-      return;
-    }
+  try {
+    const dirtyCategories = await getDirtyCategoriesAsync();
     console.log("%cFetching Dirty Categories: ",
       'color: brown;', dirtyCategories);
 
@@ -80,35 +80,24 @@ function syncCategoriesUp() {
     const syncEndPoint = "http://localhost:3000/api/sync/up/categories";
 
     console.log("Sending *categories* xml req.");
-    sendTableData( jsonSyncData, syncEndPoint, (error, response) => {
-      if(error) {
-        console.error("Error sending categories: ", error);
-        return;
-      }
-      console.log("%c\n<:: RESPONSE ::>\n",
-        'color: mediumseagreen; text-decoration: underline;', response);
 
-      const {categories, uuidMap} = response;
+    const response = await sendTableData(jsonSyncData, syncEndPoint);
+    console.log("%c\n<:: RESPONSE ::>\n",
+      'color: mediumseagreen; text-decoration: underline;', response);
 
-      updateCategoriesUuid(uuidMap, (error, updatedCategories) => {
-        if (error) {
-          console.error("Categories UUIDs update went wrong.", error);
-          return;
-        }
-        console.log("%cCategories UUIDs updated to cannonical ones: ",
-          'color: lightblue', updatedCategories);
+    const {categories, uuidMap} = response;
 
-        addCategoriesFromServer(categories, (error, processedCategories) => {
-          if(error) {
-            console.error("ERROR ADDING CATEGORIES FROM SERVER!");
-            return;
-          }
-          console.log("%cCategories upserted to local db: ",
-            'color: lime;', processedCategories);
-        });
-      });
-    });
-  });
+    const updatedCategories = await updateCategoriesUuidAsync(uuidMap);
+    console.log("%cCategories UUIDs updated to cannonical ones: ",
+      'color: lightblue', updatedCategories);
+
+    const processedCategories = await addCategoriesFromServerAsync(categories);
+    console.log("%cCategories upserted to local db: ",
+      'color: lime;', processedCategories);
+  } catch (error) {
+    console.error(error.message);
+    console.error(error.original);
+  }
 }
 
 function pushGroceriesToServer( callback ) {

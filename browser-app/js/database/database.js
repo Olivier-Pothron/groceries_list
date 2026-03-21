@@ -136,6 +136,46 @@ function addCategoriesFromServer(serverCategories, callback) {
   }
 }
 
+// Promises wrappers
+function getDirtyCategoriesAsync() {
+  return new Promise((resolve,reject) => {
+    getDirtyCategories((error, categories) => {
+      if(error) {
+        const err = new Error("Error fetching dirtyCategories.");
+        err.original = error;
+        return reject(error);
+      }
+      resolve(categories);
+    })
+  })
+}
+
+function addCategoriesFromServerAsync(serverCategories) {
+  return new Promise((resolve, reject) => {
+    addCategoriesFromServer(serverCategories, (error, processedCategories) => {
+      if(error) {
+        const err = new Error("ERROR ADDING CATEGORIES FROM SERVER!");
+        err.original = error;
+        return reject(error);
+      }
+      resolve(processedCategories);
+    })
+  })
+}
+
+function updateCategoriesUuidAsync(uuidMap) {
+  return new Promise((resolve, reject) => {
+    updateCategoriesUuid(uuidMap, (error, updatedCategories) => {
+      if(error) {
+        const err = new Error("Categories UUIDs update went wrong");
+        err.original(error);
+        return reject(err);
+      }
+      resolve(updatedCategories);
+    })
+  })
+}
+
 // #endregion
 
 /////////////////////////////////
