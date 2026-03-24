@@ -100,83 +100,35 @@ async function syncCategoriesUp() {
   }
 }
 
-function pushGroceriesToServer( callback ) {
-   console.log("%c\n<:: SYNC GROCERIES UP REQUEST ::>\n",
+async function syncGroceriesUp() {
+  console.log("%c\n<:: SYNC GROCERIES UP REQUEST ::>\n",
     'color: orange; text-decoration: underline;');
 
-  fetchTheDate( (error, lastSyncDate) => {
-    if(error) {
-      console.error("Error fetching sync date");
-      return;
-    }
-
-    getDirtyGroceries( (error, dirtyGroceries) => {
-      if(error) {
-        console.error("Error fetching dirty groceries");
-        return;
-      }
-      console.log("%cFetching Dirty Groceries: ",
+  const lastSyncDate = await fetchTheDateAsync();
+  const dirtyGroceries = await getDirtyGroceriesAsync();
+  console.log("%cFetching Dirty Groceries: ",
         'color: brown;', dirtyGroceries);
 
-      const jsonSyncData = JSON.stringify( {
-        groceries: dirtyGroceries,
-        lastSync: lastSyncDate
-      });
-      const syncEndPoint = "http://localhost:3000/api/sync/up/groceries";
-
-      console.log("Sending *groceries* xml req.");
-      sendTableData( jsonSyncData, syncEndPoint, (error, response) => {
-        if(error) {
-          console.error("Error sending groceries: ", error);
-          return;
-        }
-        console.log("%c\n<:: RESPONSE ::>\n",
-          'color: mediumseagreen; text-decoration: underline;', response);
-          callback(null, response);
-      });
-    });
+  const jsonSyncData = JSON.stringify({
+    groceries: dirtyGroceries,
+    lastSync: lastSyncDate
   });
-}
+  const syncEndPoint = "http://localhost:3000/api/sync/up/groceries";
 
-function pullGroceriesFromServer( response, callback ) {
+  console.log("Sending *groceries* xml req.");
+
+  const response = await sendTableData(jsonSyncData, syncEndPoint);
+
   const {groceries, uuidMap, syncDate} = response;
 
-  updateGroceriesUuids( uuidMap, (error, success) => {
-    if(error) {
-      console.error("Groceries UUIDs update went wrong.", error);
-      return;
-    }
-    console.log("%cGroceries UUIDs updated to cannonical ones!",
-    'color: lightblue;');
+  const updatedGroceries = await updateCategoriesUuidAsync(uuidMap);
+  console.log("%cGroceries UUIDs updated to cannonical ones!",
+    'color: lightblue;', updatedGroceries);
 
-    addGroceriesFromServer( groceries, (error, processedGroceries) => {
-      if(error) {
-        console.error("Error adding groceries from server: ", error);
-        return;
-      }
-      console.log("%cGroceries from server upserted to local db: ",
+  const processedGroceries = await addGroceriesFromServerAsync(groceries);
+  console.log("%cGroceries from server upserted to local db: ",
         'color: lime;', processedGroceries);
 
-      updateSyncDate(syncDate, (message) => {
-        console.log(`%c${message}`, 'color: teal;');
-        callback(null, true);
-      });
-    });
-  });
-}
-
-function syncGroceriesUp() {
-  pushGroceriesToServer((error, response) => {
-    if(error) {
-      console.error("Error pushing groceries: ", error);
-      return;
-    }
-    pullGroceriesFromServer( response, (error, success) => {
-      if(error) {
-        console.error("Error pulling groceries: ", error);
-        return;
-      }
-      console.log('%cGroceries sync complete!', 'color: green;');
-    })
-  })
+  const syncMessage = await updateSyncDateAsync(syncDate);
+  console.log(`%c${syncMessage}`, 'color: teal;');
 }
