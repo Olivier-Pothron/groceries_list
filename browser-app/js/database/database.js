@@ -136,7 +136,7 @@ function addCategoriesFromServer(serverCategories, callback) {
   }
 }
 
-// Promises wrappers
+// PROMISES WRAPPERS
 function getDirtyCategoriesAsync() {
   return new Promise((resolve,reject) => {
     getDirtyCategories((error, categories) => {
@@ -465,6 +465,47 @@ function getDirtyGroceries(callback) {
   }
 }
 
+// PROMISES WRAPPERS
+
+function getDirtyGroceriesAsync() {
+  return new Promise((resolve, reject) => {
+    getDirtyGroceries((error, groceries) => {
+      if(error) {
+        const err = new Error("Error fetching dirtyCategories.");
+        err.original = error;
+        return reject(err); // return clause to prevent program from continuing
+      }
+      resolve(groceries);
+    });
+  })
+}
+
+function updateGroceriesUuidsAsync(uuidMap) {
+  return new Promise((resolve, reject) => {
+    updateGroceriesUuids(uuidMap, (error, updatedGroceries) => {
+      if(error) {
+        const err = new Error("Error updating groceries uuids.");
+        err.original = error;
+        return reject(err);
+      }
+      resolve(updatedGroceries);
+    });
+  });
+}
+
+function addGroceriesFromServerAsync(groceries) {
+  return new Promise((resolve, reject) => {
+    addGroceriesFromServer(groceries, (error, processedGroceries) => {
+      if(error) {
+        const err = new Error("Error adding groceries from server.");
+        err.original = error;
+        return reject(err);
+      }
+      resolve(processedGroceries);
+    });
+  });
+}
+
 //#endregion
 
 ////////////////////////////////
@@ -473,12 +514,16 @@ function getDirtyGroceries(callback) {
 // #region DATE
 
 function updateSyncDate(date, callback) {
-  const syncQuery = 'UPDATE sync_meta SET value = ?;'
-  const syncStmt = db.prepare(syncQuery);
-  syncStmt.bind([date]);
-  syncStmt.run();
-  syncStmt.free();
-  callback(`Updating last_sync_date to: ${date}`);
+  try {
+    const syncQuery = 'UPDATE sync_meta SET value = ?;'
+    const syncStmt = db.prepare(syncQuery);
+    syncStmt.bind([date]);
+    syncStmt.run();
+    syncStmt.free();
+    callback(null, `Updating last_sync_date to: ${date}`);
+  } catch (error) {
+    callback(error, null);
+  }
 }
 
 function fetchTheDate(callback) {
@@ -489,19 +534,44 @@ function fetchTheDate(callback) {
 
       if (res.length > 0) {
         syncDate = res[0].values[0][0];
-
-        console.log("Syncd4t3");
         console.log(syncDate);
       } else {
         console.log("No date found.");
       }
 
-      if (callback) callback(null, syncDate);
+      callback(null, syncDate);
     } catch(error) {
       console.error("Error fetching d4te:", error);
-
-      if (callback) callback(error, null);
+      callback(error, null);
     }
+}
+
+// PROMISE WRAPPER
+
+function updateSyncDateAsync(date) {
+  return new Promise((resolve, reject)=> {
+    updateSyncDate(date, (error, message) => {
+      if(error) {
+        const err = new Error("Failure updating syncDate.");
+        err.original = error;
+        return reject(err);
+      }
+      resolve(message);
+    });
+  });
+}
+
+function fetchTheDateAsync() {
+  return new Promise((resolve, reject) => {
+    fetchTheDate((error, syncDate) => {
+      if(error) {
+        const err = new Error("Failure fetching the date.");
+        err.original = error;
+        return reject(err);
+      }
+      resolve(syncDate);
+    })
+  })
 }
 
 // #endregion
